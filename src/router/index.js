@@ -5,6 +5,7 @@ import AdminIndexView from '../views/Administrador/AdminIndexView.vue'
 import PaisesGestionView from '../views/Administrador/PaisesGestionView.vue'
 import CiudadesGestionView from '../views/Administrador/CiudadesGestionView.vue'
 import AeropuertosGestionView from '../views/Administrador/AeropuertosGestionView.vue'
+import VuelosGestionView from '../views/Administrador/VuelosGestionView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -12,7 +13,8 @@ const routes = [
   { path: '/admin', component: AdminIndexView },
   { path: '/admin/paises', component: PaisesGestionView },
   { path: '/admin/ciudades', component: CiudadesGestionView },
-  { path: '/admin/aeropuertos', component: AeropuertosGestionView }
+  { path: '/admin/aeropuertos', component: AeropuertosGestionView },
+  { path: '/admin/vuelos', component: VuelosGestionView }
 ]
 
 const router = createRouter({

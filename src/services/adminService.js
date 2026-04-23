@@ -73,3 +73,47 @@ export async function updateAeropuerto(idAeropuerto, payload) {
 export async function deleteAeropuerto(idAeropuerto) {
   await api.delete(`/aeropuertos/${idAeropuerto}`)
 }
+
+export async function listVuelos(filters = {}) {
+  const response = await api.get('/vuelos', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createVuelo(payload) {
+  const response = await api.post('/vuelos', payload)
+  return extractPayload(response).data
+}
+
+export async function updateVuelo(idVuelo, payload) {
+  const response = await api.put(`/vuelos/${idVuelo}`, payload)
+  return extractPayload(response).data
+}
+
+export async function updateVueloEstado(idVuelo, estadoVuelo) {
+  const response = await api.patch(`/vuelos/${idVuelo}/estado`, {
+    estado_vuelo: estadoVuelo
+  })
+
+  return extractPayload(response).data
+}
+
+export async function deleteVuelo(idVuelo) {
+  await api.delete(`/vuelos/${idVuelo}`)
+}
+
+export async function listEscalas(idVuelo) {
+  const response = await api.get(`/vuelos/${idVuelo}/escalas`)
+  return extractPayload(response).data
+}
+
+export async function createEscala(idVuelo, payload) {
+  const response = await api.post(`/vuelos/${idVuelo}/escalas`, payload)
+  return extractPayload(response).data
+}
+
+export async function deleteEscala(idVuelo, idEscala) {
+  await api.delete(`/vuelos/${idVuelo}/escalas/${idEscala}`)
+}

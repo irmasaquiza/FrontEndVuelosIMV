@@ -51,6 +51,18 @@
           Ir a aeropuertos
         </router-link>
       </article>
+
+      <article class="admin-card featured">
+        <p class="card-tag">Operaciones</p>
+        <h2>Gestion de vuelos y escalas</h2>
+        <p>
+          Programa vuelos, define origen y destino, y agrega escalas por aeropuertos intermedios.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/vuelos">
+          Ir a vuelos
+        </router-link>
+      </article>
     </section>
   </section>
 </template>
