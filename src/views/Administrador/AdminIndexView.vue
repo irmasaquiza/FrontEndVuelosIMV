@@ -75,6 +75,18 @@
           Ir a asientos
         </router-link>
       </article>
+
+      <article class="admin-card">
+        <p class="card-tag">CRM</p>
+        <h2>Gestion de clientes</h2>
+        <p>
+          Registra clientes, actualiza sus datos y controla su estado segun el contrato.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/clientes">
+          Ir a clientes
+        </router-link>
+      </article>
     </section>
   </section>
 </template>

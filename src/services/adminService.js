@@ -138,3 +138,25 @@ export async function updateAsientoDisponibilidad(idVuelo, idAsiento, disponible
 
   return extractPayload(response).data
 }
+
+export async function listClientes(filters = {}) {
+  const response = await api.get('/clientes', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createCliente(payload) {
+  const response = await api.post('/clientes', payload)
+  return extractPayload(response).data
+}
+
+export async function updateCliente(idCliente, payload) {
+  const response = await api.put(`/clientes/${idCliente}`, payload)
+  return extractPayload(response).data
+}
+
+export async function deleteCliente(idCliente) {
+  await api.delete(`/clientes/${idCliente}`)
+}

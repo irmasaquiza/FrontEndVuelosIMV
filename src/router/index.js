@@ -7,6 +7,7 @@ import CiudadesGestionView from '../views/Administrador/CiudadesGestionView.vue'
 import AeropuertosGestionView from '../views/Administrador/AeropuertosGestionView.vue'
 import VuelosGestionView from '../views/Administrador/VuelosGestionView.vue'
 import AsientosGestionView from '../views/Administrador/AsientosGestionView.vue'
+import ClientesGestionView from '../views/Administrador/ClientesGestionView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -16,7 +17,8 @@ const routes = [
   { path: '/admin/ciudades', component: CiudadesGestionView },
   { path: '/admin/aeropuertos', component: AeropuertosGestionView },
   { path: '/admin/vuelos', component: VuelosGestionView },
-  { path: '/admin/asientos', component: AsientosGestionView }
+  { path: '/admin/asientos', component: AsientosGestionView },
+  { path: '/admin/clientes', component: ClientesGestionView }
 ]
 
 const router = createRouter({
