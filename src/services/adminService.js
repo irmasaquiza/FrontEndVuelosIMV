@@ -1,0 +1,75 @@
+import api from '../api/axios'
+
+function extractPayload(response) {
+  const payload = response?.data
+
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    return {
+      data: payload.data,
+      meta: payload.meta ?? null
+    }
+  }
+
+  return {
+    data: payload,
+    meta: null
+  }
+}
+
+function cleanParams(params = {}) {
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+  )
+}
+
+export async function listPaises(filters = {}) {
+  const response = await api.get('/paises', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function listCiudades(filters = {}) {
+  const response = await api.get('/ciudades', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createCiudad(payload) {
+  const response = await api.post('/ciudades', payload)
+  return extractPayload(response).data
+}
+
+export async function updateCiudad(idCiudad, payload) {
+  const response = await api.put(`/ciudades/${idCiudad}`, payload)
+  return extractPayload(response).data
+}
+
+export async function deleteCiudad(idCiudad) {
+  await api.delete(`/ciudades/${idCiudad}`)
+}
+
+export async function listAeropuertos(filters = {}) {
+  const response = await api.get('/aeropuertos', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createAeropuerto(payload) {
+  const response = await api.post('/aeropuertos', payload)
+  return extractPayload(response).data
+}
+
+export async function updateAeropuerto(idAeropuerto, payload) {
+  const response = await api.put(`/aeropuertos/${idAeropuerto}`, payload)
+  return extractPayload(response).data
+}
+
+export async function deleteAeropuerto(idAeropuerto) {
+  await api.delete(`/aeropuertos/${idAeropuerto}`)
+}
