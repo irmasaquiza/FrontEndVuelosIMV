@@ -63,6 +63,18 @@
           Ir a vuelos
         </router-link>
       </article>
+
+      <article class="admin-card">
+        <p class="card-tag">Cabina</p>
+        <h2>Gestion de asientos</h2>
+        <p>
+          Selecciona un vuelo, crea asientos por clase y controla su disponibilidad.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/asientos">
+          Ir a asientos
+        </router-link>
+      </article>
     </section>
   </section>
 </template>

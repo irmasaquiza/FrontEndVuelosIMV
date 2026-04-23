@@ -117,3 +117,24 @@ export async function createEscala(idVuelo, payload) {
 export async function deleteEscala(idVuelo, idEscala) {
   await api.delete(`/vuelos/${idVuelo}/escalas/${idEscala}`)
 }
+
+export async function listAsientos(idVuelo, filters = {}) {
+  const response = await api.get(`/vuelos/${idVuelo}/asientos`, {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response).data
+}
+
+export async function createAsiento(idVuelo, payload) {
+  const response = await api.post(`/vuelos/${idVuelo}/asientos`, payload)
+  return extractPayload(response).data
+}
+
+export async function updateAsientoDisponibilidad(idVuelo, idAsiento, disponible) {
+  const response = await api.patch(`/vuelos/${idVuelo}/asientos/${idAsiento}`, {
+    disponible
+  })
+
+  return extractPayload(response).data
+}

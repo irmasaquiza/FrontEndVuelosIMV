@@ -268,6 +268,56 @@ th {
   background: rgba(37, 99, 235, 0.08);
 }
 
+.seat-summary {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.summary-card {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.summary-card strong {
+  display: block;
+  color: var(--color-heading);
+  font-size: 1.5rem;
+}
+
+.seat-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+}
+
+.seat-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.seat-card.available {
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(240, 253, 244, 0.86);
+}
+
+.seat-card.busy {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(254, 242, 242, 0.86);
+}
+
+.seat-number {
+  color: var(--color-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
 .pagination {
   justify-content: space-between;
   flex-wrap: wrap;
