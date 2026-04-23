@@ -222,7 +222,7 @@ async function deleteAeropuertoAction(a) {
     manejarError(e)
   }
 }
-
+ 
 onMounted(() => {
   fetchAeropuertos()
   fetchPaises()
