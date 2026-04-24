@@ -87,6 +87,30 @@
           Ir a clientes
         </router-link>
       </article>
+
+      <article class="admin-card">
+        <p class="card-tag">Ventas</p>
+        <h2>Gestion de pasajeros</h2>
+        <p>
+          Registra pasajeros, con o sin cliente asociado, y administra sus datos de viaje.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/pasajeros">
+          Ir a pasajeros
+        </router-link>
+      </article>
+
+      <article class="admin-card featured">
+        <p class="card-tag">Ventas</p>
+        <h2>Gestion de reservas</h2>
+        <p>
+          Crea reservas uniendo cliente, pasajero, vuelo y asiento, y controla su estado.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/reservas">
+          Ir a reservas
+        </router-link>
+      </article>
     </section>
   </section>
 </template>

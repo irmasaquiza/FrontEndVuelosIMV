@@ -3,66 +3,188 @@
 
     <h1>Gestión de Asientos 💺</h1>
 
-    <p v-if="feedbackError" class="error">{{ feedbackError }}</p>
+    <p v-if="feedbackError"   class="error">{{ feedbackError }}</p>
     <p v-if="feedbackSuccess" class="success">{{ feedbackSuccess }}</p>
 
-    <!-- VUELOS -->
+    <!-- ══════════════════════════════════════════════
+         SELECTOR DE VUELO
+    ══════════════════════════════════════════════ -->
     <div class="panel">
-      <h2>Seleccionar vuelo</h2>
+      <h3>Seleccionar vuelo</h3>
 
-      <table>
-        <tr v-for="vuelo in vuelos" :key="vuelo.idVuelo">
-          <td>{{ vuelo.numeroVuelo }}</td>
-          <td>
-            <button @click="selectVuelo(vuelo)">Administrar</button>
-          </td>
-        </tr>
+      <table class="tabla">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Ruta</th>
+            <th>Salida</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="v in vuelos"
+            :key="v.idVuelo"
+            :class="{ 'fila-activa': selectedVuelo?.idVuelo === v.idVuelo }"
+          >
+            <td>{{ v.numeroVuelo }}</td>
+            <td>{{ v.idAeropuertoOrigen }} → {{ v.idAeropuertoDestino }}</td>
+            <td>{{ formatDate(v.fechaHoraSalida) }}</td>
+            <td>{{ v.estadoVuelo }}</td>
+            <td>
+              <button @click="selectVuelo(v)">
+                {{ selectedVuelo?.idVuelo === v.idVuelo ? '✅ Activo' : 'Administrar' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
-    <!-- ASIENTOS -->
+    <!-- ══════════════════════════════════════════════
+         PANEL DE ASIENTOS
+    ══════════════════════════════════════════════ -->
     <div v-if="selectedVuelo" class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3>Asientos — {{ selectedVuelo.numeroVuelo }}</h3>
 
-      <h2>Asientos - {{ selectedVuelo.numeroVuelo }}</h2>
+        <!-- Leyenda -->
+        <div style="display:flex; gap:16px; font-size:13px">
+          <span><span class="badge badge-disponible">●</span> Disponible</span>
+          <span><span class="badge badge-ocupado">●</span> Ocupado</span>
+        </div>
+      </div>
 
-      <!-- FORM -->
-      <form @submit.prevent="submitAsiento">
+      <!-- Resumen -->
+      <div class="resumen">
+        <div class="resumen-item">
+          <span class="resumen-num">{{ totalDisponibles }}</span>
+          <span class="resumen-label">Disponibles</span>
+        </div>
+        <div class="resumen-item">
+          <span class="resumen-num">{{ totalOcupados }}</span>
+          <span class="resumen-label">Ocupados</span>
+        </div>
+        <div class="resumen-item">
+          <span class="resumen-num">{{ asientos.length }}</span>
+          <span class="resumen-label">Total</span>
+        </div>
+      </div>
 
-        <input v-model="asientoForm.numero_asiento" placeholder="A1" required />
+      <!-- ── FORMULARIO CREAR / EDITAR ──────────────────── -->
+      <div class="subpanel">
+        <h4>{{ editingAsiento ? `Editando asiento ${editingAsiento.numeroAsiento}` : 'Nuevo asiento' }}</h4>
 
-        <select v-model="asientoForm.clase">
-          <option>ECONOMICA</option>
-          <option>EJECUTIVA</option>
-          <option>PRIMERA</option>
-        </select>
+        <form @submit.prevent="submitAsiento" class="grid">
 
-        <select v-model="asientoForm.posicion">
-          <option value="">Posición</option>
-          <option>VENTANA</option>
-          <option>PASILLO</option>
-          <option>CENTRO</option>
-        </select>
+          <div>
+            <label>Número asiento</label>
+            <input
+              v-model="asientoForm.numeroAsiento"
+              placeholder="A1"
+              :disabled="!!editingAsiento"
+              style="width:100%"
+              required
+            />
+          </div>
 
-        <input v-model="asientoForm.precio_extra" type="number" />
+          <div>
+            <label>Clase</label>
+            <select v-model="asientoForm.clase" style="width:100%">
+              <option value="ECONOMICA">Económica</option>
+              <option value="EJECUTIVA">Ejecutiva</option>
+              <option value="PRIMERA">Primera</option>
+            </select>
+          </div>
 
-        <button>
-          {{ editingAsiento ? 'Actualizar' : 'Crear' }}
+          <div>
+            <label>Posición</label>
+            <select v-model="asientoForm.posicion" style="width:100%">
+              <option value="">Sin posición</option>
+              <option value="VENTANA">Ventana</option>
+              <option value="PASILLO">Pasillo</option>
+              <option value="CENTRO">Centro</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Precio extra ($)</label>
+            <input v-model.number="asientoForm.precioExtra" type="number" min="0" style="width:100%" />
+          </div>
+
+          <div>
+            <label>Disponible</label>
+            <select v-model="asientoForm.disponible" style="width:100%">
+              <option :value="true">Sí</option>
+              <option :value="false">No</option>
+            </select>
+          </div>
+
+          <div style="display:flex; align-items:flex-end; gap:8px">
+            <button type="submit" style="flex:1">
+              {{ editingAsiento ? 'Actualizar' : 'Crear' }}
+            </button>
+            <button type="button" @click="resetForm" style="background:#999">
+              Cancelar
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ── FILTRO RÁPIDO ──────────────────────────────── -->
+      <div style="display:flex; gap:10px; margin:12px 0; flex-wrap:wrap">
+        <button
+          v-for="f in filtrosClase"
+          :key="f.valor"
+          @click="filtroActivo = f.valor"
+          :class="['btn-filtro', { activo: filtroActivo === f.valor }]"
+        >
+          {{ f.label }}
         </button>
-      </form>
+      </div>
 
-      <!-- LISTA -->
+      <!-- ── GRID DE ASIENTOS ───────────────────────────── -->
+      <div v-if="asientosFiltrados.length === 0" style="color:#999; text-align:center; padding:20px">
+        Sin asientos para mostrar
+      </div>
+
       <div class="seat-grid">
-        <div v-for="a in asientos" :key="a.idAsiento" class="seat-card">
+        <div
+          v-for="a in asientosFiltrados"
+          :key="a.idAsiento"
+          :class="['seat-card', estaDisponible(a) ? 'seat-disponible' : 'seat-ocupado']"
+        >
+          <!-- Número grande -->
+          <div class="seat-numero">{{ a.numeroAsiento }}</div>
 
-          <strong>{{ a.numeroAsiento }}</strong>
-          <span>{{ a.clase }}</span>
-          <span>{{ a.posicion }}</span>
-          <span>${{ a.precioExtra }}</span>
-          <span>{{ a.disponible ? 'Disponible' : 'Ocupado' }}</span>
+          <!-- Tags -->
+          <div class="seat-tags">
+            <span class="tag">{{ a.clase }}</span>
+            <span v-if="a.posicion" class="tag">{{ a.posicion }}</span>
+          </div>
 
-          <button @click="editAsiento(a)">Editar</button>
-          <button @click="toggleDisponibilidad(a)">Estado</button>
+          <!-- Precio extra -->
+          <div v-if="a.precioExtra > 0" class="seat-precio">+${{ a.precioExtra }}</div>
 
+          <!-- Estado -->
+          <div :class="['seat-estado', estaDisponible(a) ? 'estado-disponible' : 'estado-ocupado']">
+            {{ estaDisponible(a) ? '✅ Disponible' : '🔴 Ocupado' }}
+          </div>
+
+          <!-- Acciones -->
+          <div class="seat-acciones">
+            <button class="btn-sm" @click="editAsiento(a)">✏️</button>
+            <button
+              class="btn-sm"
+              :class="estaDisponible(a) ? 'btn-danger' : 'btn-ok'"
+              @click="toggleDisponibilidad(a)"
+              :title="estaDisponible(a) ? 'Marcar como ocupado' : 'Marcar como disponible'"
+            >
+              {{ estaDisponible(a) ? 'Ocupar' : 'Liberar' }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -72,160 +194,231 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/api/axios'
 
-const vuelos = ref([])
-const asientos = ref([])
+// ── Estado ────────────────────────────────────────────────────────
+const vuelos        = ref([])
+const asientos      = ref([])
 const selectedVuelo = ref(null)
+const editingAsiento = ref(null)
+const filtroActivo  = ref('TODOS')
 
-const feedbackError = ref('')
+const feedbackError   = ref('')
 const feedbackSuccess = ref('')
 
-const editingAsiento = ref(null)
+const filtrosClase = [
+  { label: 'Todos',     valor: 'TODOS'    },
+  { label: 'Económica', valor: 'ECONOMICA'},
+  { label: 'Ejecutiva', valor: 'EJECUTIVA'},
+  { label: 'Primera',   valor: 'PRIMERA'  },
+  { label: '✅ Disponibles', valor: 'DISPONIBLES' },
+  { label: '🔴 Ocupados',    valor: 'OCUPADOS'    },
+]
 
+// ── Formulario asiento ────────────────────────────────────────────
 const asientoForm = reactive({
-  numero_asiento: '',
-  clase: 'ECONOMICA',
-  precio_extra: 0,
-  posicion: ''
+  numeroAsiento: '',
+  clase:         'ECONOMICA',
+  posicion:      '',
+  precioExtra:   0,
+  disponible:    true
 })
 
-/* ---------------- ERROR ---------------- */
+// ── Computed ──────────────────────────────────────────────────────
+
+// ✅ Función helper: detecta disponibilidad sin importar si viene
+//    como booleano true/false o string "true"/"false"
+function estaDisponible(a) {
+  return a.disponible === true || a.disponible === 'true'
+}
+
+const asientosFiltrados = computed(() => {
+  if (filtroActivo.value === 'TODOS')        return asientos.value
+  if (filtroActivo.value === 'DISPONIBLES')  return asientos.value.filter(a =>  estaDisponible(a))
+  if (filtroActivo.value === 'OCUPADOS')     return asientos.value.filter(a => !estaDisponible(a))
+  return asientos.value.filter(a => a.clase === filtroActivo.value)
+})
+
+const totalDisponibles = computed(() => asientos.value.filter(a =>  estaDisponible(a)).length)
+const totalOcupados    = computed(() => asientos.value.filter(a => !estaDisponible(a)).length)
+
+// ── Helpers ───────────────────────────────────────────────────────
+function formatDate(d) {
+  return d ? d.replace('T', ' ').slice(0, 16) : ''
+}
 
 function setError(e) {
-  console.log("ERROR:", e.response?.data)
-
+  feedbackSuccess.value = ''
   if (e.response?.data?.errors) {
-    feedbackError.value = Object.values(e.response.data.errors)
-      .flat()
-      .join(' | ')
+    feedbackError.value = Object.values(e.response.data.errors).flat().join(' | ')
   } else {
-    feedbackError.value = e.response?.data?.title || e.message
+    feedbackError.value = e.response?.data?.message || e.response?.data?.title || e.message
   }
+  console.error('API error:', e.response?.data ?? e)
 }
 
 function setSuccess(msg) {
-  feedbackError.value = ''
+  feedbackError.value   = ''
   feedbackSuccess.value = msg
+  setTimeout(() => { feedbackSuccess.value = '' }, 3000)
 }
 
-/* ---------------- FETCH ---------------- */
-
+// ── Fetch ─────────────────────────────────────────────────────────
 async function fetchVuelos() {
-  const res = await api.get('/vuelos', {
-    params: { page: 1, page_size: 50 }
-  })
-
-  vuelos.value = res.data.data
+  try {
+    const res = await api.get('/vuelos', { params: { page: 1, page_size: 50 } })
+    vuelos.value = res.data.data ?? []
+  } catch (e) { setError(e) }
 }
 
 async function selectVuelo(v) {
   selectedVuelo.value = v
-  fetchAsientos()
+  resetForm()
+  await fetchAsientos()
 }
 
 async function fetchAsientos() {
-  const res = await api.get(`/vuelos/${selectedVuelo.value.idVuelo}/asientos`)
-  asientos.value = res.data.data || res.data
+  try {
+    const res = await api.get(`/vuelos/${selectedVuelo.value.idVuelo}/asientos`)
+    // ✅ Soporta { data: [...] } o array directo
+    const lista = res.data.data ?? res.data ?? []
+    asientos.value = Array.isArray(lista) ? lista : []
+    console.log('Asientos recibidos:', asientos.value)
+  } catch (e) { setError(e) }
 }
 
-/* ---------------- EDIT ---------------- */
-
+// ── Editar ────────────────────────────────────────────────────────
 function editAsiento(a) {
-  editingAsiento.value = a
-
-  asientoForm.numero_asiento = a.numeroAsiento
-  asientoForm.clase = a.clase
-  asientoForm.precio_extra = a.precioExtra
-  asientoForm.posicion = a.posicion
+  editingAsiento.value       = a
+  asientoForm.numeroAsiento  = a.numeroAsiento
+  asientoForm.clase          = a.clase
+  asientoForm.posicion       = a.posicion       ?? ''
+  asientoForm.precioExtra    = a.precioExtra    ?? 0
+  asientoForm.disponible     = estaDisponible(a)
 }
 
-/* ---------------- CREATE / UPDATE ---------------- */
-
+// ── Crear / Actualizar ────────────────────────────────────────────
 async function submitAsiento() {
-
   const payload = {
-    numeroAsiento: asientoForm.numero_asiento.toUpperCase(),
-    clase: asientoForm.clase,
-    disponible: true,
-    precioExtra: Number(asientoForm.precio_extra || 0),
-    posicion: asientoForm.posicion || null
+    numeroAsiento: asientoForm.numeroAsiento.toUpperCase(),
+    clase:         asientoForm.clase,
+    disponible:    asientoForm.disponible,
+    precioExtra:   Number(asientoForm.precioExtra ?? 0),
+    posicion:      asientoForm.posicion || null
   }
 
-  console.log("JSON ENVIADO:", payload)
+  console.log('🚀 payload asiento:', payload)
 
   try {
-
     if (editingAsiento.value) {
-
-      // 🔥 PATCH EDITAR
       await api.patch(
         `/vuelos/${selectedVuelo.value.idVuelo}/asientos/${editingAsiento.value.idAsiento}`,
         payload
       )
-
-      setSuccess("Asiento actualizado")
-
+      setSuccess(`Asiento ${payload.numeroAsiento} actualizado ✅`)
     } else {
-
-      // POST
       await api.post(
         `/vuelos/${selectedVuelo.value.idVuelo}/asientos`,
         payload
       )
-
-      setSuccess("Asiento creado")
+      setSuccess(`Asiento ${payload.numeroAsiento} creado ✅`)
     }
 
     resetForm()
     fetchAsientos()
-
-  } catch (e) {
-    setError(e)
-  }
+  } catch (e) { setError(e) }
 }
 
-/* ---------------- TOGGLE ---------------- */
-
+// ── Toggle disponibilidad ─────────────────────────────────────────
 async function toggleDisponibilidad(a) {
+  const nuevoEstado = !estaDisponible(a)
   try {
     await api.patch(
       `/vuelos/${selectedVuelo.value.idVuelo}/asientos/${a.idAsiento}`,
       {
         numeroAsiento: a.numeroAsiento,
-        clase: a.clase,
-        disponible: !a.disponible,
-        precioExtra: a.precioExtra,
-        posicion: a.posicion
+        clase:         a.clase,
+        disponible:    nuevoEstado,
+        precioExtra:   a.precioExtra ?? 0,
+        posicion:      a.posicion ?? null
       }
     )
-
-    setSuccess("Estado actualizado")
+    setSuccess(`Asiento ${a.numeroAsiento} marcado como ${nuevoEstado ? 'disponible' : 'ocupado'}`)
     fetchAsientos()
-
-  } catch (e) {
-    setError(e)
-  }
+  } catch (e) { setError(e) }
 }
 
-/* ---------------- RESET ---------------- */
-
+// ── Reset ─────────────────────────────────────────────────────────
 function resetForm() {
-  asientoForm.numero_asiento = ''
-  asientoForm.clase = 'ECONOMICA'
-  asientoForm.precio_extra = 0
-  asientoForm.posicion = ''
-  editingAsiento.value = null
+  asientoForm.numeroAsiento = ''
+  asientoForm.clase         = 'ECONOMICA'
+  asientoForm.posicion      = ''
+  asientoForm.precioExtra   = 0
+  asientoForm.disponible    = true
+  editingAsiento.value      = null
 }
 
+// ── Init ──────────────────────────────────────────────────────────
 onMounted(fetchVuelos)
 </script>
 
-<style>
-.panel { margin:20px; padding:10px; border:1px solid #ccc }
-.seat-grid { display:grid; grid-template-columns: repeat(5,1fr); gap:10px }
-.seat-card { border:1px solid #ccc; padding:10px }
-.error { color:red }
-.success { color:green }
+<style scoped>
+.admin-page  { padding: 20px; font-family: sans-serif }
+.panel       { margin: 20px 0; padding: 16px; border: 1px solid #ddd; border-radius: 10px }
+.subpanel    { background: #f9f9f9; border-radius: 8px; padding: 14px; margin: 14px 0 }
+.grid        { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px }
+.tabla       { width: 100%; border-collapse: collapse }
+.tabla th,
+.tabla td    { border: 1px solid #ccc; padding: 8px; font-size: 13px }
+.tabla thead { background: #f0f0f0 }
+.fila-activa { background: #e8f4ff }
+.error       { color: red;   font-weight: bold }
+.success     { color: green; font-weight: bold }
+
+/* Resumen */
+.resumen       { display: flex; gap: 20px; margin: 12px 0 }
+.resumen-item  { text-align: center; padding: 10px 20px; border-radius: 8px; background: #f5f5f5 }
+.resumen-num   { display: block; font-size: 24px; font-weight: bold }
+.resumen-label { font-size: 12px; color: #666 }
+
+/* Filtros */
+.btn-filtro        { padding: 6px 14px; border: 1px solid #ccc; border-radius: 20px; background: #fff; cursor: pointer; font-size: 13px }
+.btn-filtro.activo { background: #2563eb; color: #fff; border-color: #2563eb }
+
+/* Grid de asientos */
+.seat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 12px }
+
+.seat-card {
+  border-radius: 10px;
+  padding: 12px;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.seat-disponible { background: #f0fdf4; border-color: #86efac }
+.seat-ocupado    { background: #fff1f2; border-color: #fca5a5 }
+
+.seat-numero { font-size: 22px; font-weight: bold; text-align: center }
+
+.seat-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center }
+.tag       { background: #e5e7eb; border-radius: 4px; padding: 1px 6px; font-size: 11px }
+
+.seat-precio { text-align: center; color: #059669; font-size: 12px; font-weight: 600 }
+
+.seat-estado        { text-align: center; font-size: 12px; font-weight: 600; padding: 2px 0 }
+.estado-disponible  { color: #16a34a }
+.estado-ocupado     { color: #dc2626 }
+
+.seat-acciones { display: flex; gap: 4px; margin-top: 4px }
+.btn-sm        { flex: 1; padding: 4px 0; font-size: 12px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc }
+.btn-danger    { background: #fee2e2; border-color: #fca5a5; color: #991b1b }
+.btn-ok        { background: #dcfce7; border-color: #86efac; color: #166534 }
+
+.badge { font-size: 16px }
+.badge-disponible { color: #16a34a }
+.badge-ocupado    { color: #dc2626 }
 </style>

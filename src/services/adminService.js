@@ -160,3 +160,39 @@ export async function updateCliente(idCliente, payload) {
 export async function deleteCliente(idCliente) {
   await api.delete(`/clientes/${idCliente}`)
 }
+
+export async function listPasajeros(filters = {}) {
+  const response = await api.get('/pasajeros', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createPasajero(payload) {
+  const response = await api.post('/pasajeros', payload)
+  return extractPayload(response).data
+}
+
+export async function updatePasajero(idPasajero, payload) {
+  const response = await api.put(`/pasajeros/${idPasajero}`, payload)
+  return extractPayload(response).data
+}
+
+export async function listReservas(filters = {}) {
+  const response = await api.get('/reservas', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createReserva(payload) {
+  const response = await api.post('/reservas', payload)
+  return extractPayload(response).data
+}
+
+export async function updateReservaEstado(idReserva, payload) {
+  const response = await api.patch(`/reservas/${idReserva}/estado`, payload)
+  return extractPayload(response).data
+}

@@ -8,6 +8,8 @@ import AeropuertosGestionView from '../views/Administrador/AeropuertosGestionVie
 import VuelosGestionView from '../views/Administrador/VuelosGestionView.vue'
 import AsientosGestionView from '../views/Administrador/AsientosGestionView.vue'
 import ClientesGestionView from '../views/Administrador/ClientesGestionView.vue'
+import PasajerosGestionView from '../views/Administrador/PasajerosGestionView.vue'
+import ReservasGestionView from '../views/Administrador/ReservasGestionView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -18,7 +20,9 @@ const routes = [
   { path: '/admin/aeropuertos', component: AeropuertosGestionView },
   { path: '/admin/vuelos', component: VuelosGestionView },
   { path: '/admin/asientos', component: AsientosGestionView },
-  { path: '/admin/clientes', component: ClientesGestionView }
+  { path: '/admin/clientes', component: ClientesGestionView },
+  { path: '/admin/pasajeros', component: PasajerosGestionView },
+  { path: '/admin/reservas', component: ReservasGestionView }
 ]
 
 const router = createRouter({
