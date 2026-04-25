@@ -339,7 +339,7 @@ import {
   listReservas,
   listVuelos,
   updateReservaEstado
-} from '../../services/adminService'
+} from '../../../services/adminService'
 
 const clientes = ref([])
 const pasajeros = ref([])
@@ -750,4 +750,4 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped src="./admin.css"></style>
+<style scoped src="../admin.css"></style>

@@ -1,38 +1,51 @@
 <template>
-  <section class="dashboard">
-    <div class="hero">
+  <section class="container-fluid p-4">
+
+    <!-- Hero -->
+    <div class="d-flex justify-content-between align-items-start gap-3 p-4 mb-4 rounded-4 text-white"
+         style="background: linear-gradient(135deg, #d60f2b, #a00824, #6b0016);">
       <div>
-        <p class="eyebrow">Panel principal</p>
-        <h1>Bienvenido al sistema de vuelos</h1>
-        <p class="lead">
-          Desde aqui puedes administrar catalogos base y seguir construyendo el resto del front por modulos.
-        </p>
+        <p class="text-uppercase fw-semibold small mb-1" style="opacity: 0.65; letter-spacing: 2px;">Panel principal</p>
+        <h1 class="fw-bold mb-2">Bienvenido a NachoFlight</h1>
+        <p class="mb-0" style="opacity: 0.75;">Desde aquí puedes administrar todos los módulos del sistema.</p>
+      </div>
+      <button class="btn btn-outline-light fw-bold flex-shrink-0" @click="logout">
+        Cerrar sesión
+      </button>
+    </div>
+
+    <!-- Cards -->
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <article class="card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex flex-column gap-2 p-4">
+            <p class="text-uppercase fw-bold small mb-0" style="color: #d60f2b; letter-spacing: 1.5px;">Primer módulo</p>
+            <h2 class="h5 fw-bold mb-0">Administración de catálogos</h2>
+            <p class="text-muted mb-0">
+              Gestiona países, ciudades y aeropuertos de forma rápida y sencilla.
+            </p>
+            <router-link class="btn fw-bold rounded-pill mt-2 align-self-start px-4 text-white"
+                         style="background: #d60f2b;"
+                         to="/admin">
+              Abrir módulo
+            </router-link>
+          </div>
+        </article>
       </div>
 
-      <button class="secondary-btn" @click="logout">Cerrar sesion</button>
+      <div class="col-12 col-md-6">
+        <article class="card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex flex-column gap-2 p-4">
+            <p class="text-uppercase fw-bold small mb-0" style="color: #d60f2b; letter-spacing: 1.5px;">Estado actual</p>
+            <h2 class="h5 fw-bold mb-0">Sesión activa</h2>
+            <p class="text-muted mb-0">
+              Tu sesión está activa y protegida. Ciérrala cuando termines de usar el sistema.
+            </p>
+          </div>
+        </article>
+      </div>
     </div>
 
-    <div class="grid">
-      <article class="card card-primary">
-        <p class="card-tag">Primer modulo</p>
-        <h2>Administracion de catalogos</h2>
-        <p>
-          Gestiona paises, ciudades y aeropuertos siguiendo el contrato del backend.
-        </p>
-
-        <router-link class="primary-btn" to="/admin">
-          Abrir modulo
-        </router-link>
-      </article>
-
-      <article class="card">
-        <p class="card-tag">Estado actual</p>
-        <h2>Autenticacion lista</h2>
-        <p>
-          El JWT se conserva en <code>localStorage</code> y las rutas privadas quedan protegidas por el router.
-        </p>
-      </article>
-    </div>
   </section>
 </template>
 
@@ -46,87 +59,3 @@ const logout = () => {
   router.push('/')
 }
 </script>
-
-<style scoped>
-.dashboard {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.hero {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-  padding: 1.75rem;
-  border-radius: 24px;
-  background: linear-gradient(135deg, #0f172a, #1d4ed8);
-  color: #f8fafc;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
-}
-
-.eyebrow,
-.card-tag {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.75rem;
-  opacity: 0.72;
-}
-
-.lead {
-  max-width: 48rem;
-  margin-top: 0.75rem;
-  color: rgba(248, 250, 252, 0.86);
-}
-
-.grid {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-}
-
-.card {
-  display: grid;
-  gap: 0.85rem;
-  padding: 1.5rem;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-}
-
-.card-primary {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(219, 234, 254, 0.95));
-}
-
-.primary-btn,
-.secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.75rem 1.1rem;
-  border-radius: 999px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-}
-
-.primary-btn {
-  width: fit-content;
-  background: #0f172a;
-  color: white;
-}
-
-.secondary-btn {
-  background: rgba(255, 255, 255, 0.16);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-@media (max-width: 720px) {
-  .hero {
-    display: grid;
-  }
-}
-</style>
