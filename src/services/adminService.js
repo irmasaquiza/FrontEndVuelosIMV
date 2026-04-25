@@ -196,3 +196,62 @@ export async function updateReservaEstado(idReserva, payload) {
   const response = await api.patch(`/reservas/${idReserva}/estado`, payload)
   return extractPayload(response).data
 }
+
+export async function listMetodosPago(idCliente) {
+  const response = await api.get(`/clientes/${idCliente}/metodos-pago`)
+  return extractPayload(response).data
+}
+
+export async function listFacturas(filters = {}) {
+  const response = await api.get('/facturas', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createFactura(payload) {
+  const response = await api.post('/facturas', payload)
+  return extractPayload(response).data
+}
+
+export async function anularFactura(idFactura, payload) {
+  const response = await api.patch(`/facturas/${idFactura}/anular`, payload)
+  return extractPayload(response).data
+}
+
+export async function aprobarFactura(idFactura, payload = {}) {
+  const response = await api.patch(`/facturas/${idFactura}/aprobar`, payload)
+  return extractPayload(response).data
+}
+
+export async function listBoletos(filters = {}) {
+  const response = await api.get('/boletos', {
+    params: cleanParams(filters)
+  })
+
+  return extractPayload(response)
+}
+
+export async function createBoleto(payload) {
+  const response = await api.post('/boletos', payload)
+  return extractPayload(response).data
+}
+
+export async function listEquipaje(idBoleto) {
+  const response = await api.get(`/boletos/${idBoleto}/equipaje`)
+  return extractPayload(response).data
+}
+
+export async function createEquipaje(idBoleto, payload) {
+  const response = await api.post(`/boletos/${idBoleto}/equipaje`, payload)
+  return extractPayload(response).data
+}
+
+export async function updateEquipajeEstado(idBoleto, idEquipaje, estadoEquipaje) {
+  const response = await api.patch(`/boletos/${idBoleto}/equipaje/${idEquipaje}/estado`, {
+    estado_equipaje: estadoEquipaje
+  })
+
+  return extractPayload(response).data
+}

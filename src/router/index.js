@@ -10,6 +10,9 @@ import AsientosGestionView from '../views/Administrador/AsientosGestionView.vue'
 import ClientesGestionView from '../views/Administrador/ClientesGestionView.vue'
 import PasajerosGestionView from '../views/Administrador/PasajerosGestionView.vue'
 import ReservasGestionView from '../views/Administrador/ReservasGestionView.vue'
+import FacturasGestionView from '../views/Administrador/FacturasGestionView.vue'
+import BoletosGestionView from '../views/Administrador/BoletosGestionView.vue'
+import EquipajeGestionView from '../views/Administrador/EquipajeGestionView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -22,7 +25,10 @@ const routes = [
   { path: '/admin/asientos', component: AsientosGestionView },
   { path: '/admin/clientes', component: ClientesGestionView },
   { path: '/admin/pasajeros', component: PasajerosGestionView },
-  { path: '/admin/reservas', component: ReservasGestionView }
+  { path: '/admin/reservas', component: ReservasGestionView },
+  { path: '/admin/facturas', component: FacturasGestionView },
+  { path: '/admin/boletos', component: BoletosGestionView },
+  { path: '/admin/equipaje', component: EquipajeGestionView }
 ]
 
 const router = createRouter({

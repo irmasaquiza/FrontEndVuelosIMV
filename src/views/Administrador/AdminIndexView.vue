@@ -111,6 +111,42 @@
           Ir a reservas
         </router-link>
       </article>
+
+      <article class="admin-card">
+        <p class="card-tag">Finanzas</p>
+        <h2>Gestion de facturas</h2>
+        <p>
+          Emite facturas para reservas y controla su estado de apertura o anulacion.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/facturas">
+          Ir a facturas
+        </router-link>
+      </article>
+
+      <article class="admin-card featured">
+        <p class="card-tag">Ventas</p>
+        <h2>Gestion de boletos</h2>
+        <p>
+          Emite boletos a partir de reservas y facturas, enlazando vuelo y asiento.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/boletos">
+          Ir a boletos
+        </router-link>
+      </article>
+
+      <article class="admin-card">
+        <p class="card-tag">Operacion</p>
+        <h2>Gestion de equipaje</h2>
+        <p>
+          Registra equipaje por boleto y actualiza su estado durante el flujo del viaje.
+        </p>
+
+        <router-link class="primary-btn" to="/admin/equipaje">
+          Ir a equipaje
+        </router-link>
+      </article>
     </section>
   </section>
 </template>
