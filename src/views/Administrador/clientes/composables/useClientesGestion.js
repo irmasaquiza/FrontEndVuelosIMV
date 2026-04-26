@@ -13,7 +13,7 @@ export function useClientesGestion() {
 
   const busquedaPais = ref('')
   const errorMsg = ref('')
-  const successMsg = ref('')
+  const successMsg = ref('')  
   const editingCliente = ref(null)
 
   const form = reactive({
@@ -52,14 +52,21 @@ export function useClientesGestion() {
     return !clientesTotal.value && clientes.value.length === clientesPageSize.value
   })
 
-  function setError(error) {
+  function setError(error, fallback = '') {
     successMsg.value = ''
-    if (error.response?.data?.errors) {
+    if (error?.response?.data?.errors) {
       errorMsg.value = Object.values(error.response.data.errors).flat().join(' | ')
     } else {
-      errorMsg.value = error.response?.data?.title || error.response?.data?.message || error.message
+      errorMsg.value =
+        error?.response?.data?.mensaje ||
+        error?.response?.data?.message ||
+        error?.response?.data?.detalle ||
+        error?.response?.data?.title ||
+        error?.message ||
+        fallback ||
+        'Ha ocurrido un error inesperado.'
     }
-    console.error('API error:', error.response?.data ?? error)
+    console.error('API error:', error?.response?.data ?? error)
   }
 
   function setSuccess(message) {

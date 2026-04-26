@@ -569,11 +569,18 @@ function formatDate(d) {
   return d ? d.replace('T', ' ').slice(0, 16) : ''
 }
 
-function manejarError(e) {
-  if (e.response?.data?.errors) {
+function manejarError(e, fallback = '') {
+  if (e?.response?.data?.errors) {
     errorMsg.value = Object.values(e.response.data.errors).flat().join(' | ')
   } else {
-    errorMsg.value = e.response?.data?.message || e.message
+    errorMsg.value =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
   }
 }
 

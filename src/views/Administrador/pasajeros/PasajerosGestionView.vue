@@ -371,12 +371,20 @@ const canNextPasajeroPage = computed(() => {
   return !pasajerosTotal.value && pasajeros.value.length === pasajerosPageSize.value
 })
 
-function setError(e) {
-  console.log('ERROR:', e.response?.data)
-  feedbackError.value =
-    e.response?.data?.detalle ||
-    e.response?.data?.title   ||
-    e.message
+function setError(e, fallback = '') {
+  console.log('ERROR:', e?.response?.data)
+  if (e?.response?.data?.errors) {
+    feedbackError.value = Object.values(e.response.data.errors).flat().join(' | ')
+  } else {
+    feedbackError.value =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title   ||
+      e?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
+  }
 }
 
 function setSuccess(msg) {

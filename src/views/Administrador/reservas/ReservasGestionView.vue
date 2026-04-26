@@ -579,13 +579,20 @@ function entityValue(entity, keys) {
   return undefined
 }
 
-function setError(error, fallback) {
+function setError(error, fallback = '') {
   feedbackSuccess.value = ''
-  feedbackError.value =
-    error?.response?.data?.mensaje ||
-    error?.response?.data?.detalle ||
-    error?.response?.data?.message ||
-    error?.message || fallback
+  if (error?.response?.data?.errors) {
+    feedbackError.value = Object.values(error.response.data.errors).flat().join(' | ')
+  } else {
+    feedbackError.value =
+      error?.response?.data?.mensaje ||
+      error?.response?.data?.message ||
+      error?.response?.data?.detalle ||
+      error?.response?.data?.title ||
+      error?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
+  }
 }
 
 function setSuccess(message) {

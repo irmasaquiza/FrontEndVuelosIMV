@@ -323,7 +323,13 @@ async function submitFactura() {
     fetchFacturas()
   } catch (e) {
     console.log(e)
-    errorMsg.value   = e.response?.data?.message || e.message
+    errorMsg.value   =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      'Ha ocurrido un error inesperado.'
     successMsg.value = ''
   }
 }
@@ -336,7 +342,13 @@ async function aprobarFacturaItem(f) {
     errorMsg.value   = ''
     fetchFacturas()
   } catch (e) {
-    errorMsg.value   = e.response?.data?.message || e.message
+    errorMsg.value   =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      'Ha ocurrido un error inesperado.'
     successMsg.value = ''
   }
 }
@@ -348,7 +360,13 @@ async function anularFactura(f) {
     errorMsg.value   = ''
     fetchFacturas()
   } catch (e) {
-    errorMsg.value   = e.response?.data?.message || e.message
+    errorMsg.value   =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      'Ha ocurrido un error inesperado.'
     successMsg.value = ''
   }
 }

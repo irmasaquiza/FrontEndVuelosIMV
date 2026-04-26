@@ -355,14 +355,21 @@ function formatDate(d) {
   return d ? d.replace('T', ' ').slice(0, 16) : ''
 }
 
-function setError(e) {
+function setError(e, fallback = '') {
   feedbackSuccess.value = ''
-  if (e.response?.data?.errors) {
+  if (e?.response?.data?.errors) {
     feedbackError.value = Object.values(e.response.data.errors).flat().join(' | ')
   } else {
-    feedbackError.value = e.response?.data?.message || e.response?.data?.title || e.message
+    feedbackError.value =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
   }
-  console.error('API error:', e.response?.data ?? e)
+  console.error('API error:', e?.response?.data ?? e)
 }
 
 function setSuccess(msg) {

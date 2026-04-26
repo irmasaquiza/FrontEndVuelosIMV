@@ -639,14 +639,21 @@ const asientosDisponibles = computed(() =>
   asientosVuelo.value.filter(a => a.disponible === true || a.disponible === 'true')
 )
 
-function setError(e) {
+function setError(e, fallback = '') {
   successMsg.value = ''
-  if (e.response?.data?.errors) {
+  if (e?.response?.data?.errors) {
     errorMsg.value = Object.values(e.response.data.errors).flat().join(' | ')
   } else {
-    errorMsg.value = e.response?.data?.message || e.response?.data?.title || e.message
+    errorMsg.value =
+      e?.response?.data?.mensaje ||
+      e?.response?.data?.message ||
+      e?.response?.data?.detalle ||
+      e?.response?.data?.title ||
+      e?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
   }
-  console.error('API error:', e.response?.data ?? e)
+  console.error('API error:', e?.response?.data ?? e)
 }
 
 function setSuccess(msg) {

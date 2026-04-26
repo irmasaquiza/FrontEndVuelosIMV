@@ -344,17 +344,20 @@ function buildPayload() {
   }
 }
 
-function manejarError(error) {
+function manejarError(error, fallback = '') {
   successMsg.value = ''
-  if (error.response?.data?.errors) {
+  if (error?.response?.data?.errors) {
     const errores = error.response.data.errors
     errorMsg.value = Object.values(errores).flat().join(' | ')
   } else {
     errorMsg.value =
-      error.response?.data?.title ||
-      error.response?.data?.mensaje ||
-      error.message ||
-      'Error inesperado'
+      error?.response?.data?.mensaje ||
+      error?.response?.data?.message ||
+      error?.response?.data?.detalle ||
+      error?.response?.data?.title ||
+      error?.message ||
+      fallback ||
+      'Ha ocurrido un error inesperado.'
   }
 }
 

@@ -179,11 +179,17 @@ async function fetchPaises() {
     const { data } = await listPaises(filters)
     paises.value = Array.isArray(data) ? data : []
   } catch (error) {
-    errorMessage.value =
-      error?.response?.data?.mensaje ||
-      error?.response?.data?.detalle ||
-      error?.message ||
-      'No se pudieron cargar los países.'
+    if (error?.response?.data?.errors) {
+      errorMessage.value = Object.values(error.response.data.errors).flat().join(' | ')
+    } else {
+      errorMessage.value =
+        error?.response?.data?.mensaje ||
+        error?.response?.data?.message ||
+        error?.response?.data?.detalle ||
+        error?.response?.data?.title ||
+        error?.message ||
+        'No se pudieron cargar los países.'
+    }
   } finally {
     loading.value = false
   }
