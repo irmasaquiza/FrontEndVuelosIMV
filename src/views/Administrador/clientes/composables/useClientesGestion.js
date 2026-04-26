@@ -3,6 +3,11 @@ import api from '@/api/axios'
 
 export function useClientesGestion() {
   const clientes = ref([])
+  const loadingClientes = ref(false)
+  const clientesPage = ref(1)
+  const clientesPageSize = ref(20)
+  const clientesTotal = ref(0)
+  const clientesTotalPages = ref(1)
   const paises = ref([])
   const ciudades = ref([])
 
@@ -36,7 +41,15 @@ export function useClientesGestion() {
 
   const ciudadesFiltradas = computed(() => {
     if (!form.idPaisNacionalidad) return []
-    return ciudades.value.filter((ciudad) => ciudad.idPais === form.idPaisNacionalidad)
+    return ciudades.value.filter((ciudad) => String(ciudad.idPais) === String(form.idPaisNacionalidad))
+  })
+
+  const canNextClientePage = computed(() => {
+    if (clientesTotalPages.value > clientesPage.value) {
+      return true
+    }
+
+    return !clientesTotal.value && clientes.value.length === clientesPageSize.value
   })
 
   function setError(error) {
@@ -57,9 +70,62 @@ export function useClientesGestion() {
     }, 3000)
   }
 
-  async function fetchClientes() {
-    const response = await api.get('/clientes', { params: { page: 1, page_size: 50 } })
-    clientes.value = response.data.data
+  function readClientesMeta(response) {
+    const meta = response.data?.meta || {}
+    const total =
+      response.data?.total ||
+      response.data?.totalRecords ||
+      response.data?.total_registros ||
+      meta.total ||
+      meta.totalRecords ||
+      meta.total_registros ||
+      0
+
+    const totalPages =
+      response.data?.totalPages ||
+      response.data?.total_pages ||
+      meta.totalPages ||
+      meta.total_pages ||
+      0
+
+    clientesTotal.value = Number(total || 0)
+
+    if (totalPages) {
+      clientesTotalPages.value = Number(totalPages)
+      return
+    }
+
+    if (total) {
+      clientesTotalPages.value = Math.max(1, Math.ceil(total / clientesPageSize.value))
+      return
+    }
+
+    clientesTotalPages.value = clientes.value.length === clientesPageSize.value
+      ? clientesPage.value + 1
+      : clientesPage.value
+  }
+
+  async function fetchClientes(page = clientesPage.value) {
+    loadingClientes.value = true
+
+    try {
+      const response = await api.get('/clientes', {
+        params: {
+          Page: page,
+          PageSize: clientesPageSize.value,
+          page,
+          page_size: clientesPageSize.value
+        }
+      })
+
+      clientes.value = response.data.data ?? response.data ?? []
+      clientesPage.value = page
+      readClientesMeta(response)
+    } catch (error) {
+      setError(error)
+    } finally {
+      loadingClientes.value = false
+    }
   }
 
   async function fetchPaises() {
@@ -186,12 +252,19 @@ export function useClientesGestion() {
   return {
     clientes,
     busquedaPais,
+    canNextClientePage,
     ciudadesFiltradas,
+    clientesPage,
+    clientesPageSize,
+    clientesTotal,
+    clientesTotalPages,
     deleteCliente,
     editCliente,
     editingCliente,
     errorMsg,
+    fetchClientes,
     form,
+    loadingClientes,
     paisesFiltrados,
     resetForm,
     submitCliente,
