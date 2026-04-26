@@ -232,27 +232,6 @@
         </article>
       </div>
 
-      <!-- Equipaje -->
-      <div class="col-12 col-sm-6 col-lg-4">
-        <article class="card h-100 border-0 shadow-sm">
-          <div class="card-body d-flex flex-column gap-2 p-4">
-            <div class="rounded-3 d-flex align-items-center justify-content-center mb-1"
-                 style="width:48px;height:48px;background:#fff0f2;">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                <path d="M20 6h-2.18c.07-.31.18-.62.18-1 0-1.66-1.34-3-3-3h-6C7.34 2 6 3.34 6 5c0 .38.11.69.18 1H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM9 5h6c.55 0 1 .45 1 1s-.45 1-1 1H9c-.55 0-1-.45-1-1s.45-1 1-1zm11 14H4V8h16v11z" fill="#d60f2b"/>
-              </svg>
-            </div>
-            <p class="text-uppercase fw-bold small mb-0" style="color:#d60f2b;letter-spacing:1.5px;">Operación</p>
-            <h2 class="h6 fw-bold mb-0">Gestión de equipaje</h2>
-            <p class="text-muted small mb-0">Registra equipaje por boleto y actualiza su estado durante el viaje.</p>
-            <router-link class="btn fw-bold rounded-pill mt-auto align-self-start px-4 text-white"
-                         style="background:#d60f2b;" to="/admin/equipaje">
-              Ir a equipaje
-            </router-link>
-          </div>
-        </article>
-      </div>
-
     </div>
   </section>
 </template>

@@ -12,7 +12,6 @@ import PasajerosGestionView from '../views/Administrador/pasajeros/PasajerosGest
 import ReservasGestionView from '../views/Administrador/reservas/ReservasGestionView.vue'
 import FacturasGestionView from '../views/Administrador/facturas/FacturasGestionView.vue'
 import BoletosGestionView from '../views/Administrador/boletos/BoletosGestionView.vue'
-import EquipajeGestionView from '../views/Administrador/equipaje/EquipajeGestionView.vue'
 
 const routes = [
   { path: '/', component: LoginView, meta: { guestOnly: true } },
@@ -27,8 +26,7 @@ const routes = [
   { path: '/admin/pasajeros', component: PasajerosGestionView, meta: { requiresAuth: true } },
   { path: '/admin/reservas', component: ReservasGestionView, meta: { requiresAuth: true } },
   { path: '/admin/facturas', component: FacturasGestionView, meta: { requiresAuth: true } },
-  { path: '/admin/boletos', component: BoletosGestionView, meta: { requiresAuth: true } },
-  { path: '/admin/equipaje', component: EquipajeGestionView, meta: { requiresAuth: true } }
+  { path: '/admin/boletos', component: BoletosGestionView, meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({
