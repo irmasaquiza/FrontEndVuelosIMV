@@ -190,13 +190,6 @@
               </div>
 
               <div class="col-12 col-md-2">
-                <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Precio extra ($)</label>
-                <input v-model.number="asientoForm.precioExtra" type="number" min="0" placeholder="0"
-                       class="form-control"
-                       style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
-              </div>
-
-              <div class="col-12 col-md-2">
                 <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Disponible</label>
                 <select v-model="asientoForm.disponible"
                         class="form-select"
@@ -266,11 +259,6 @@
                 </span>
               </div>
 
-              <!-- Precio extra -->
-              <div v-if="a.precioExtra > 0" class="small fw-semibold mb-1" style="color:#059669;">
-                +${{ a.precioExtra }}
-              </div>
-
               <!-- Estado -->
               <div class="small fw-semibold mb-2"
                    :style="estaDisponible(a) ? 'color:#16a34a;' : 'color:#dc2626;'">
@@ -331,7 +319,6 @@ const asientoForm = reactive({
   numeroAsiento: '',
   clase:         'ECONOMICA',
   posicion:      '',
-  precioExtra:   0,
   disponible:    true
 })
 
@@ -406,7 +393,6 @@ function editAsiento(a) {
   asientoForm.numeroAsiento = a.numeroAsiento
   asientoForm.clase         = a.clase
   asientoForm.posicion      = a.posicion    ?? ''
-  asientoForm.precioExtra   = a.precioExtra ?? 0
   asientoForm.disponible    = estaDisponible(a)
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
@@ -417,7 +403,7 @@ async function submitAsiento() {
     numeroAsiento: asientoForm.numeroAsiento.toUpperCase(),
     clase:         asientoForm.clase,
     disponible:    asientoForm.disponible,
-    precioExtra:   Number(asientoForm.precioExtra ?? 0),
+    precioExtra:   0,
     posicion:      asientoForm.posicion || null
   }
 
@@ -447,7 +433,7 @@ async function toggleDisponibilidad(a) {
         numeroAsiento: a.numeroAsiento,
         clase:         a.clase,
         disponible:    nuevoEstado,
-        precioExtra:   a.precioExtra ?? 0,
+        precioExtra:   0,
         posicion:      a.posicion    ?? null
       }
     )
@@ -461,7 +447,6 @@ function resetForm() {
   asientoForm.numeroAsiento = ''
   asientoForm.clase         = 'ECONOMICA'
   asientoForm.posicion      = ''
-  asientoForm.precioExtra   = 0
   asientoForm.disponible    = true
   editingAsiento.value      = null
 }

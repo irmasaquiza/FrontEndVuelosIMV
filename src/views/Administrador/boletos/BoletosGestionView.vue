@@ -42,7 +42,7 @@
           </div>
           <div>
             <h2 class="h5 fw-bold mb-0">Emitir boleto</h2>
-            <p class="text-muted small mb-0">El precio se calcula automáticamente. El cargo de equipaje inicia en $0.</p>
+            <p class="text-muted small mb-0">El backend calcula importes y el asiento corresponde al asiento real de la reserva.</p>
           </div>
         </div>
 
@@ -106,7 +106,7 @@
                       @change="onAsientoChange">
                 <option value="">{{ cargandoAsientos ? 'Cargando...' : 'Sin asiento' }}</option>
                 <option v-for="a in asientosDisponibles" :key="a.idAsiento" :value="a.idAsiento">
-                  {{ a.numeroAsiento }} — {{ a.clase }}{{ a.posicion ? ' · ' + a.posicion : '' }}{{ a.precioExtra > 0 ? ' (+$' + a.precioExtra + ')' : '' }}
+                  {{ a.numeroAsiento }} — {{ a.clase }}{{ a.posicion ? ' · ' + a.posicion : '' }}
                 </option>
               </select>
               <div class="mt-1" style="font-size:0.72rem;">
@@ -128,32 +128,7 @@
               </select>
             </div>
 
-            <!-- Resumen de precios -->
-            <div class="col-12">
-              <div class="row g-0 rounded-3 overflow-hidden" style="border:1px solid #f0f0f0;">
-                <div class="col-6 col-md text-center p-3" style="background:#fafafa;border-right:1px solid #f0f0f0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;letter-spacing:0.5px;">Vuelo base</div>
-                  <div class="fw-bold mt-1">${{ form.precioVueloBase.toFixed(2) }}</div>
-                </div>
-                <div class="col-6 col-md text-center p-3" style="background:#fafafa;border-right:1px solid #f0f0f0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;letter-spacing:0.5px;">Extra asiento</div>
-                  <div class="fw-bold mt-1">${{ form.precioAsientoExtra.toFixed(2) }}</div>
-                </div>
-                <div class="col-6 col-md text-center p-3" style="background:#f0f9ff;border-right:1px solid #f0f0f0;">
-                  <div class="fw-bold small text-uppercase" style="font-size:0.65rem;letter-spacing:0.5px;color:#3b5bdb;">Impuestos 15%</div>
-                  <div class="fw-bold mt-1" style="color:#3b5bdb;">${{ form.impuestosBoleto.toFixed(2) }}</div>
-                </div>
-                <div class="col-6 col-md text-center p-3" style="background:#fafafa;border-right:1px solid #f0f0f0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.65rem;letter-spacing:0.5px;">Cargo equipaje</div>
-                  <div class="fw-bold mt-1">${{ form.cargoEquipaje.toFixed(2) }}</div>
-                </div>
-                <div class="col-12 col-md text-center p-3" style="background:#f0fdf4;">
-                  <div class="fw-bold small text-uppercase" style="font-size:0.65rem;letter-spacing:0.5px;color:#065f46;">Total final</div>
-                  <div class="fw-bold mt-1" style="font-size:1.15rem;color:#d60f2b;">${{ form.precioFinal.toFixed(2) }}</div>
-                </div>
-              </div>
-            </div>
-
+            <!-- Eliminated: Resumen de precios -->
             <!-- Botones -->
             <div class="col-12 d-flex gap-2 justify-content-end pt-2">
               <button type="button"
@@ -498,13 +473,6 @@
               </div>
 
               <div class="col-12 col-md-2">
-                <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Precio extra ($)</label>
-                <input v-model.number="equipajeForm.precioExtra" type="number" min="0" step="0.01"
-                       class="form-control"
-                       style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
-              </div>
-
-              <div class="col-12 col-md-2">
                 <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Dimensiones (cm)</label>
                 <input v-model="equipajeForm.dimensionesCm" placeholder="55x40x20"
                        class="form-control"
@@ -542,14 +510,13 @@
                   <th class="text-uppercase small fw-bold py-3"      style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Tipo</th>
                   <th class="text-uppercase small fw-bold py-3"      style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Peso</th>
                   <th class="text-uppercase small fw-bold py-3"      style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Dimensiones</th>
-                  <th class="text-uppercase small fw-bold py-3"      style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Precio extra</th>
                   <th class="text-uppercase small fw-bold py-3"      style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Estado</th>
                   <th class="text-uppercase small fw-bold pe-4 py-3" style="color:#888;letter-spacing:0.5px;font-size:0.72rem;">Descripción</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-if="!equipajes.length">
-                  <td colspan="7" class="text-center text-muted py-4">Sin equipaje registrado.</td>
+                  <td colspan="6" class="text-center text-muted py-4">Sin equipaje registrado.</td>
                 </tr>
                 <tr v-for="e in equipajes" :key="e.idEquipaje">
                   <td class="ps-4">
@@ -561,7 +528,6 @@
                   <td class="small fw-semibold">{{ e.tipo }}</td>
                   <td class="text-muted small">{{ Number(e.pesoKg).toFixed(2) }} kg</td>
                   <td class="text-muted small">{{ e.dimensionesCm || '—' }}</td>
-                  <td class="text-muted small">${{ Number(e.precioExtra || 0).toFixed(2) }}</td>
                   <td>
                     <select class="form-select form-select-sm fw-semibold"
                             style="border-radius:6px;font-size:0.78rem;width:auto;"
@@ -616,13 +582,11 @@ const totalPaginas = ref(1)
 
 const form = reactive({
   idReserva: '', idVuelo: '', idAsiento: '', idFactura: '',
-  clase: 'ECONOMICA',
-  precioVueloBase: 0, precioAsientoExtra: 0,
-  impuestosBoleto: 0, cargoEquipaje: 0, precioFinal: 0
+  clase: 'ECONOMICA'
 })
 
 const equipajeForm = reactive({
-  tipo: 'MANO', pesoKg: 0, precioExtra: 0,
+  tipo: 'MANO', pesoKg: 0,
   dimensionesCm: '', descripcionEquipaje: ''
 })
 
@@ -672,37 +636,25 @@ function getVueloNombre(id) {
   return v ? v.numeroVuelo : `#${id}`
 }
 
-function recalcular() {
-  const base           = (form.precioVueloBase || 0) + (form.precioAsientoExtra || 0)
-  form.impuestosBoleto = +(base * 0.15).toFixed(2)
-  form.cargoEquipaje   = 0
-  form.precioFinal     = +(base + form.impuestosBoleto).toFixed(2)
-}
+// Se eliminó la función recalcular ya que el backend maneja los precios
 
 function onReservaChange() {
   const r = reservas.value.find(r => r.idReserva == form.idReserva)
   if (r) {
     form.idVuelo            = r.idVuelo   ?? ''
     form.idAsiento          = r.idAsiento ?? ''
-    form.precioVueloBase    = r.subtotalReserva ?? r.precioBase ?? 0
-    form.precioAsientoExtra = 0
-    recalcular()
     if (form.idVuelo) fetchAsientosVuelo()
   }
 }
 
 async function onVueloChange() {
-  form.idAsiento = ''; form.precioAsientoExtra = 0; asientosVuelo.value = []
-  const v = vuelos.value.find(v => v.idVuelo == form.idVuelo)
-  if (v) { form.precioVueloBase = v.precioBase ?? 0; recalcular() }
+  form.idAsiento = ''; asientosVuelo.value = []
   await fetchAsientosVuelo()
 }
 
 function onAsientoChange() {
   const a = asientosVuelo.value.find(a => a.idAsiento == form.idAsiento)
-  if (a) { form.precioAsientoExtra = a.precioExtra ?? 0; form.clase = a.clase ?? form.clase }
-  else   { form.precioAsientoExtra = 0 }
-  recalcular()
+  if (a) { form.clase = a.clase ?? form.clase }
 }
 
 async function fetchAll() {
@@ -756,10 +708,11 @@ async function submitBoleto() {
       idReserva: Number(form.idReserva), idVuelo: Number(form.idVuelo),
       idAsiento: form.idAsiento ? Number(form.idAsiento) : null,
       idFactura: Number(form.idFactura), clase: form.clase,
-      precioVueloBase: Number(form.precioVueloBase),
-      precioAsientoExtra: Number(form.precioAsientoExtra),
-      impuestosBoleto: Number(form.impuestosBoleto),
-      cargoEquipaje: 0, precioFinal: Number(form.precioFinal)
+      precioVueloBase: 0,
+      precioAsientoExtra: 0,
+      impuestosBoleto: 0,
+      cargoEquipaje: 0, 
+      precioFinal: 0
     }
     console.log('POST /boletos:', payload)
     await api.post('/boletos', payload)
@@ -799,7 +752,7 @@ async function submitEquipaje() {
       tipo:                equipajeForm.tipo,
       pesoKg:              Number(equipajeForm.pesoKg),
       descripcionEquipaje: equipajeForm.descripcionEquipaje || null,
-      precioExtra:         Number(equipajeForm.precioExtra  || 0),
+      precioExtra:         0,
       dimensionesCm:       equipajeForm.dimensionesCm       || null
     })
     setSuccess('Equipaje agregado correctamente')
@@ -828,13 +781,12 @@ function limpiarFiltros() { Object.keys(filtros).forEach(k => { filtros[k] = '' 
 
 function resetForm() {
   form.idReserva = ''; form.idVuelo = ''; form.idAsiento = ''; form.idFactura = ''
-  form.clase = 'ECONOMICA'; form.precioVueloBase = 0; form.precioAsientoExtra = 0
-  form.impuestosBoleto = 0; form.cargoEquipaje = 0; form.precioFinal = 0
+  form.clase = 'ECONOMICA'
   asientosVuelo.value = []
 }
 
 function resetEquipajeForm() {
-  equipajeForm.tipo = 'MANO'; equipajeForm.pesoKg = 0; equipajeForm.precioExtra = 0
+  equipajeForm.tipo = 'MANO'; equipajeForm.pesoKg = 0
   equipajeForm.dimensionesCm = ''; equipajeForm.descripcionEquipaje = ''
 }
 

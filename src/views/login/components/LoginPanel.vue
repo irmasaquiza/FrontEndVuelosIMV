@@ -92,6 +92,11 @@
       </form>
 
       <hr class="my-4" />
+      <div class="text-center mb-4">
+        <p class="text-muted small mb-1">¿No tienes cuenta?</p>
+        <router-link to="/register" class="fw-bold text-decoration-none" style="color: #d60f2b;">Regístrate aquí</router-link>
+      </div>
+
       <p class="text-center text-muted" style="font-size: 0.72rem;">
         © 2026 NachoFlight. Todos los derechos reservados.
       </p>

@@ -108,7 +108,7 @@
 
           <div class="col-12 col-md-4">
             <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Precio base ($)</label>
-            <input v-model="vueloForm.precioBase" type="number" placeholder="Ej. 199.99"
+            <input v-model="vueloForm.precioBase" type="number" min="0" step="0.01" placeholder="Ej. 199.99"
                    class="form-control"
                    style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
           </div>

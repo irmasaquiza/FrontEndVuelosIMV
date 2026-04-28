@@ -42,7 +42,7 @@
           </div>
           <div>
             <h2 class="h5 fw-bold mb-0">Nueva factura</h2>
-            <p class="text-muted small mb-0">Selecciona una reserva y el sistema autocompleta los montos.</p>
+            <p class="text-muted small mb-0">Selecciona una reserva. El backend controla los montos y el estado financiero.</p>
           </div>
         </div>
 
@@ -76,34 +76,6 @@
                   {{ c.nombres }} {{ c.apellidos }}
                 </option>
               </select>
-            </div>
-
-            <!-- Totales visuales -->
-            <div class="col-12">
-              <div class="row g-3 p-3 rounded-3" style="background:#fafafa;border:1px solid #f0f0f0;">
-                <div class="col-6 col-md-3 text-center">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">Subtotal</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;">${{ Number(form.subtotal || 0).toFixed(2) }}</div>
-                </div>
-                <div class="col-6 col-md-3 text-center" style="border-left:1px solid #e0e0e0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">IVA</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;">${{ Number(form.valorIva || 0).toFixed(2) }}</div>
-                </div>
-                <div class="col-6 col-md-3 text-center" style="border-left:1px solid #e0e0e0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">Cargo servicio</div>
-                  <div class="mt-1">
-                    <input v-model.number="form.cargoServicio"
-                           type="number" min="0" step="0.01"
-                           class="form-control text-center fw-bold"
-                           style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:36px;font-size:1rem;"
-                           @input="calcularTotal" />
-                  </div>
-                </div>
-                <div class="col-6 col-md-3 text-center" style="border-left:1px solid #e0e0e0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">Total</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;color:#d60f2b;">${{ Number(form.total || 0).toFixed(2) }}</div>
-                </div>
-              </div>
             </div>
 
             <!-- Canal / Observaciones -->
@@ -271,20 +243,13 @@ watch(
     console.log('RESERVA:', r)
     if (r) {
       form.idCliente     = r.idCliente
-      form.subtotal      = r.subtotalReserva
-      form.valorIva      = r.valorIva
+      form.subtotal      = 0
+      form.valorIva      = 0
       form.cargoServicio = 0
-      form.total         = r.totalReserva
+      form.total         = 0
     }
   }
 )
-
-function calcularTotal() {
-  form.total =
-    Number(form.subtotal      || 0) +
-    Number(form.valorIva      || 0) +
-    Number(form.cargoServicio || 0)
-}
 
 // ── Fetch ─────────────────────────────────────────────────────────
 async function fetchAll() {
@@ -309,10 +274,10 @@ async function submitFactura() {
     const payload = {
       idCliente:            Number(form.idCliente),
       idReserva:            Number(form.idReserva),
-      subtotal:             Number(form.subtotal),
-      valorIva:             Number(form.valorIva),
-      cargoServicio:        Number(form.cargoServicio),
-      total:                Number(form.total),
+      subtotal:             0,
+      valorIva:             0,
+      cargoServicio:        0,
+      total:                0,
       observacionesFactura: form.observacionesFactura,
       origenCanalFactura:   form.origenCanalFactura
     }

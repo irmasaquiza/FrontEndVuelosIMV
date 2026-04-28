@@ -42,7 +42,7 @@
           </div>
           <div>
             <h2 class="h5 fw-bold mb-0">Nueva reserva</h2>
-            <p class="text-muted small mb-0">Relaciona cliente, pasajero, vuelo y asiento. El sistema calcula el total estimado.</p>
+            <p class="text-muted small mb-0">Relaciona cliente, pasajero, vuelo y asiento. Los valores financieros los calcula el backend.</p>
           </div>
         </div>
 
@@ -103,8 +103,7 @@
               <select v-model="form.idAsiento" required
                       :disabled="!form.idVuelo || loadingAsientos"
                       class="form-select"
-                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;"
-                      @change="calcularPrecios">
+                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;">
                 <option value="">{{ loadingAsientos ? 'Cargando asientos...' : 'Selecciona asiento' }}</option>
                 <option v-for="asiento in asientosDisponibles"
                         :key="entityId(asiento, ['id_asiento','idAsiento'])"
@@ -126,24 +125,6 @@
               <input v-model="form.fechaFin" type="datetime-local" required
                      class="form-control"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
-            </div>
-
-            <!-- Totales (readonly) -->
-            <div class="col-12">
-              <div class="row g-3 p-3 rounded-3" style="background:#fafafa;border:1px solid #f0f0f0;">
-                <div class="col-4 text-center">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">Subtotal</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;">${{ formatMoney(form.subtotalReserva) }}</div>
-                </div>
-                <div class="col-4 text-center" style="border-left:1px solid #e0e0e0;border-right:1px solid #e0e0e0;">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">IVA (15%)</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;">${{ formatMoney(form.valorIva) }}</div>
-                </div>
-                <div class="col-4 text-center">
-                  <div class="text-muted small text-uppercase fw-bold" style="font-size:0.68rem;letter-spacing:0.5px;">Total</div>
-                  <div class="fw-bold mt-1" style="font-size:1.1rem;color:#d60f2b;">${{ formatMoney(form.totalReserva) }}</div>
-                </div>
-              </div>
             </div>
 
             <!-- Canal / Email / Teléfono -->
@@ -541,7 +522,6 @@ const estadosReserva = [
 const form = reactive({
   idCliente: '', idPasajero: '', idVuelo: '', idAsiento: '',
   fechaInicio: '', fechaFin: '',
-  subtotalReserva: 0, valorIva: 0, totalReserva: 0,
   origenCanalReserva: 'WEB',
   contactoEmail: '', contactoTelefono: '', observaciones: ''
 })
@@ -654,23 +634,9 @@ function getAsientoEtiqueta(a) {
   const num    = entityValue(a, ['numero_asiento','numeroAsiento'])
   const clase  = entityValue(a, ['clase'])
   const pos    = entityValue(a, ['posicion'])
-  const extra  = entityValue(a, ['precio_extra','precioExtra'])
   const partes = [`${num}`, clase]
   if (pos)              partes.push(pos)
-  if (Number(extra||0) > 0) partes.push(`+$${formatMoney(extra)}`)
   return partes.join(' — ')
-}
-
-function calcularPrecios() {
-  const v  = vuelos.value.find((i) => String(entityId(i, ['id_vuelo','idVuelo'])) === String(form.idVuelo))
-  const a  = asientos.value.find((i) => String(entityId(i, ['id_asiento','idAsiento'])) === String(form.idAsiento))
-  const base  = Number(entityValue(v, ['precio_base','precioBase']) || 0)
-  const extra = Number(entityValue(a, ['precio_extra','precioExtra']) || 0)
-  const sub   = base + extra
-  const iva   = sub * 0.15
-  form.subtotalReserva = Number(sub.toFixed(2))
-  form.valorIva        = Number(iva.toFixed(2))
-  form.totalReserva    = Number((sub + iva).toFixed(2))
 }
 
 function onClienteChange() {
@@ -694,7 +660,6 @@ async function onVueloChange() {
   }
   form.idAsiento  = ''
   asientos.value  = []
-  calcularPrecios()
   await fetchAsientos()
 }
 
@@ -706,9 +671,9 @@ function buildReservaPayload() {
     idAsiento: Number(form.idAsiento),
     fechaInicio: new Date(form.fechaInicio).toISOString(),
     fechaFin: new Date(form.fechaFin).toISOString(),
-    subtotalReserva: Number(form.subtotalReserva),
-    valorIva: Number(form.valorIva),
-    totalReserva: Number(form.totalReserva),
+    subtotalReserva: 0,
+    valorIva: 0,
+    totalReserva: 0,
     origenCanalReserva: form.origenCanalReserva || 'WEB',
     contactoEmail: form.contactoEmail    || null,
     contactoTelefono: form.contactoTelefono || null,
@@ -807,7 +772,6 @@ function verDetalle(reserva) { detalleReserva.value = reserva }
 function resetForm() {
   form.idCliente = ''; form.idPasajero = ''; form.idVuelo = ''; form.idAsiento = ''
   form.fechaInicio = ''; form.fechaFin = ''
-  form.subtotalReserva = 0; form.valorIva = 0; form.totalReserva = 0
   form.origenCanalReserva = 'WEB'
   form.contactoEmail = ''; form.contactoTelefono = ''; form.observaciones = ''
   asientos.value = []
