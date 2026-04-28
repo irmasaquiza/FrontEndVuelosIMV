@@ -45,7 +45,7 @@
           </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link fw-bold px-4 py-2 rounded-pill" :class="{ 'active bg-danger': activeTab === 'boletos', 'text-dark bg-white border': activeTab !== 'boletos' }" @click="activeTab = 'boletos'">
+          <button class="nav-link fw-bold px-4 py-2 rounded-pill" :class="{ 'active bg-danger': activeTab === 'boletos', 'text-dark bg-white border': activeTab !== 'boletos' }" @click="showBoletos">
             Mis Boletos
           </button>
         </li>
@@ -234,6 +234,10 @@
                     <span class="badge rounded-pill px-3 py-2" :class="getFacturaBadgeClass(b)">
                       {{ getFacturaEstado(b) }}
                     </span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center border-top mt-3 pt-3">
+                    <span class="small text-muted fw-bold text-uppercase">Total a pagar</span>
+                    <span class="fw-bold text-danger">{{ formatMoney(getFacturaTotal(b)) }}</span>
                   </div>
                   <button
                     v-if="canPayFactura(b)"
@@ -468,7 +472,19 @@ function entityValue(entity, keys) {
 }
 
 function getFacturaId(item) {
-  return entityValue(resolveFactura(item), ['idFactura', 'id_factura', 'facturaId', 'factura_id'])
+  const factura = resolveFactura(item)
+  const directId = entityValue(factura, ['idFactura', 'id_factura', 'facturaId', 'factura_id'])
+  if (directId) return directId
+
+  const idReserva = getReservaId(item)
+  const boleto = boletos.value.find((candidate) => String(getReservaId(candidate)) === String(idReserva))
+  return entityValue(boleto, ['idFactura', 'id_factura', 'facturaId', 'factura_id']) ||
+    entityValue(boleto?.factura, ['idFactura', 'id_factura', 'facturaId', 'factura_id'])
+}
+
+function getReservaId(item) {
+  return entityValue(item, ['idReserva', 'id_reserva', 'reservaId', 'reserva_id']) ||
+    entityValue(item?.reserva, ['idReserva', 'id_reserva', 'reservaId', 'reserva_id'])
 }
 
 function getFacturaEstado(item) {
@@ -511,13 +527,22 @@ function resolveFactura(item) {
     if (facturaById) return facturaById
   }
 
-  const idReserva = entityValue(item, ['idReserva', 'id_reserva'])
+  const idReserva = getReservaId(item)
   if (idReserva) {
-    const facturaByReserva = facturas.value.find((factura) =>
-      String(entityValue(factura, ['idReserva', 'id_reserva'])) === String(idReserva)
-    )
+    const facturaByReserva = facturas.value.find((factura) => {
+      const facturaReservaId = getReservaId(factura)
+      return String(facturaReservaId) === String(idReserva)
+    })
 
     if (facturaByReserva) return facturaByReserva
+
+    const boletoByReserva = boletos.value.find((boleto) =>
+      String(getReservaId(boleto)) === String(idReserva)
+    )
+
+    if (boletoByReserva?.factura) return boletoByReserva.factura
+    const boletoFacturaId = entityValue(boletoByReserva, ['idFactura', 'id_factura', 'facturaId', 'factura_id'])
+    if (boletoFacturaId) return boletoByReserva
   }
 
   return item
@@ -526,6 +551,15 @@ function resolveFactura(item) {
 function formatMoney(value) {
   if (value === undefined || value === null || value === '') return 'Total pendiente'
   return `$${Number(value || 0).toFixed(2)}`
+}
+
+function normalizeList(payload) {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.data)) return payload.data
+  if (Array.isArray(payload?.items)) return payload.items
+  if (Array.isArray(payload?.result)) return payload.result
+  if (Array.isArray(payload?.records)) return payload.records
+  return []
 }
 
 function isFacturaAbierta(item) {
@@ -615,6 +649,19 @@ function closePayment() {
   paymentError.value = ''
 }
 
+function getPaymentErrorMessage(error) {
+  if (error?.response?.data?.errors) {
+    return Object.values(error.response.data.errors).flat().join(' | ')
+  }
+
+  return error?.response?.data?.mensaje ||
+    error?.response?.data?.message ||
+    error?.response?.data?.detalle ||
+    error?.response?.data?.title ||
+    (error?.response?.status ? `No se pudo aprobar la factura. Codigo ${error.response.status}.` : '') ||
+    'No se pudo procesar el pago. Intenta nuevamente.'
+}
+
 async function confirmPayment() {
   if (!paymentTarget.value?.idFactura) return
 
@@ -637,7 +684,7 @@ async function confirmPayment() {
     setFacturaPagadaLocal(paidItem, paidFacturaId)
   } catch (error) {
     console.error('Error al aprobar factura:', error)
-    paymentError.value = error?.response?.data?.mensaje || 'No se pudo procesar el pago. Intenta nuevamente.'
+    paymentError.value = getPaymentErrorMessage(error)
   } finally {
     paymentLoading.value = false
   }
@@ -648,7 +695,7 @@ const fetchReservas = async () => {
   errorMsg.value = ''
   try {
     const res = await listMyReservations()
-    reservas.value = res?.data || []
+    reservas.value = normalizeList(res?.data)
     reservas.value.forEach((reserva) => {
       const idFactura = getFacturaId(reserva)
       if (idFactura && paidFacturaIds.value.has(String(idFactura))) {
@@ -670,7 +717,7 @@ const fetchBoletos = async () => {
   errorMsg.value = ''
   try {
     const res = await listMyBoletos()
-    boletos.value = res?.data || []
+    boletos.value = normalizeList(res?.data)
     boletos.value.forEach((boleto) => {
       const idFactura = getFacturaId(boleto)
       if (idFactura && paidFacturaIds.value.has(String(idFactura))) {
@@ -685,10 +732,16 @@ const fetchBoletos = async () => {
   }
 }
 
+const showBoletos = async () => {
+  activeTab.value = 'boletos'
+  await fetchBoletos()
+  fetchFacturas()
+}
+
 const fetchFacturas = async () => {
   try {
     const res = await listMyFacturas()
-    facturas.value = Array.isArray(res?.data) ? res.data : []
+    facturas.value = normalizeList(res?.data)
     facturas.value.forEach((factura) => {
       const idFactura = entityValue(factura, ['idFactura', 'id_factura', 'facturaId', 'factura_id'])
       if (idFactura && paidFacturaIds.value.has(String(idFactura))) {
@@ -712,8 +765,9 @@ const handleConfirmar = async (idReserva) => {
   try {
     await confirmReserva(idReserva)
     successMsg.value = '¡Reserva confirmada con éxito! Tu boleto ha sido generado automáticamente.'
-    await fetchReservas()
-    await fetchBoletos() // Refrescamos boletos por si cambia de tab
+    await sleep(1200)
+    await Promise.all([fetchReservas(), fetchBoletos(), fetchFacturas()])
+    activeTab.value = 'boletos'
   } catch (error) {
     console.error(error)
     errorMsg.value = error?.response?.data?.mensaje || 'Error al confirmar la reserva.'

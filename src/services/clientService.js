@@ -41,8 +41,8 @@ export async function createReserva(payload) {
   return extractPayload(response).data
 }
 
-export async function listMyReservations(filters = {}) {
-  const response = await api.get('/reservas', { params: cleanParams(filters) })
+export async function listMyReservations() {
+  const response = await api.get('/reservas/mis-reservas')
   return extractPayload(response)
 }
 
@@ -61,9 +61,8 @@ export async function listMyBoletos() {
   return extractPayload(response)
 }
 
-export async function listMyFacturas(filters = {}) {
-  const params = cleanParams({ PageSize: 1000, page_size: 1000, ...filters })
-  const response = await api.get('/facturas', { params })
+export async function listMyFacturas() {
+  const response = await api.get('/facturas/mis-facturas')
   return extractPayload(response)
 }
 
@@ -85,6 +84,15 @@ export async function updateEquipajeEstado(idBoleto, idEquipaje, estadoEquipaje)
 }
 
 export async function approveFactura(idFactura) {
-  const response = await api.patch(`/facturas/${idFactura}/aprobar`, null)
+  const response = await api.request({
+    method: 'patch',
+    url: `/facturas/${idFactura}/aprobar`,
+    transformRequest: [(_, headers) => {
+      delete headers['Content-Type']
+      delete headers.common?.['Content-Type']
+      delete headers.patch?.['Content-Type']
+      return undefined
+    }]
+  })
   return extractPayload(response).data
 }

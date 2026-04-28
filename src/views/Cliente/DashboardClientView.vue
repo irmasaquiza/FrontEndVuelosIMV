@@ -53,28 +53,72 @@
           <!-- Origen -->
           <div class="col-md-6 col-lg-3">
             <label class="form-label text-muted small fw-bold text-uppercase" for="origen">Origen</label>
-            <div class="input-group">
-              <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt"></i></span>
-              <select id="origen" v-model="form.origen" class="form-select border-start-0 ps-0 bg-light" required>
-                <option value="" disabled>¿Desde dónde viajas?</option>
-                <option v-for="aeropuerto in aeropuertos" :key="aeropuerto.idAeropuerto" :value="aeropuerto.idAeropuerto">
-                  {{ aeropuerto.nombre }} ({{ aeropuerto.codigoIata }})
-                </option>
-              </select>
+            <div class="airport-combobox" @focusin="openAirportList('origen')">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-alt"></i></span>
+                <input
+                  id="origen"
+                  v-model.trim="search.origen"
+                  autocomplete="off"
+                  class="form-control border-start-0 ps-0 bg-light"
+                  placeholder="Busca ciudad, aeropuerto o código"
+                  required
+                  type="text"
+                  @input="form.origen = ''"
+                />
+              </div>
+              <div v-if="openList === 'origen'" class="airport-results shadow-sm">
+                <button
+                  v-for="aeropuerto in aeropuertosOrigenFiltrados"
+                  :key="aeropuerto.idAeropuerto"
+                  class="airport-option"
+                  type="button"
+                  @click="selectAirport('origen', aeropuerto)"
+                >
+                  <span class="fw-bold">{{ aeropuerto.codigoIata || '---' }}</span>
+                  <span>{{ aeropuerto.nombre }}</span>
+                  <small class="text-muted">{{ getAirportLocation(aeropuerto) }}</small>
+                </button>
+                <div v-if="aeropuertosOrigenFiltrados.length === 0" class="text-muted small p-3">
+                  No encontramos coincidencias.
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Destino -->
           <div class="col-md-6 col-lg-3">
             <label class="form-label text-muted small fw-bold text-uppercase" for="destino">Destino</label>
-            <div class="input-group">
-              <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-fill"></i></span>
-              <select id="destino" v-model="form.destino" class="form-select border-start-0 ps-0 bg-light" required>
-                <option value="" disabled>¿A dónde viajas?</option>
-                <option v-for="aeropuerto in aeropuertos" :key="aeropuerto.idAeropuerto" :value="aeropuerto.idAeropuerto">
-                  {{ aeropuerto.nombre }} ({{ aeropuerto.codigoIata }})
-                </option>
-              </select>
+            <div class="airport-combobox" @focusin="openAirportList('destino')">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-geo-fill"></i></span>
+                <input
+                  id="destino"
+                  v-model.trim="search.destino"
+                  autocomplete="off"
+                  class="form-control border-start-0 ps-0 bg-light"
+                  placeholder="Busca ciudad, aeropuerto o código"
+                  required
+                  type="text"
+                  @input="form.destino = ''"
+                />
+              </div>
+              <div v-if="openList === 'destino'" class="airport-results shadow-sm">
+                <button
+                  v-for="aeropuerto in aeropuertosDestinoFiltrados"
+                  :key="aeropuerto.idAeropuerto"
+                  class="airport-option"
+                  type="button"
+                  @click="selectAirport('destino', aeropuerto)"
+                >
+                  <span class="fw-bold">{{ aeropuerto.codigoIata || '---' }}</span>
+                  <span>{{ aeropuerto.nombre }}</span>
+                  <small class="text-muted">{{ getAirportLocation(aeropuerto) }}</small>
+                </button>
+                <div v-if="aeropuertosDestinoFiltrados.length === 0" class="text-muted small p-3">
+                  No encontramos coincidencias.
+                </div>
+              </div>
             </div>
           </div>
 
@@ -107,15 +151,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { listAeropuertos } from '../../services/clientService'
 
 const router = useRouter()
 const aeropuertos = ref([])
 const loadingAirports = ref(true)
+const openList = ref('')
 
 const today = new Date().toISOString().split('T')[0]
+
+const search = reactive({
+  origen: '',
+  destino: ''
+})
 
 const form = reactive({
   tripType: 'roundTrip',
@@ -136,7 +186,69 @@ const fetchAeropuertos = async () => {
   }
 }
 
+const aeropuertosOrigenFiltrados = computed(() => filterAirports(search.origen, form.destino))
+const aeropuertosDestinoFiltrados = computed(() => filterAirports(search.destino, form.origen))
+
+function getAirportId(aeropuerto) {
+  return aeropuerto.idAeropuerto ?? aeropuerto.id_aeropuerto
+}
+
+function getAirportLocation(aeropuerto) {
+  return [
+    aeropuerto.ciudad?.nombre,
+    aeropuerto.nombreCiudad,
+    aeropuerto.ciudadNombre,
+    aeropuerto.pais?.nombre,
+    aeropuerto.nombrePais,
+    aeropuerto.paisNombre
+  ].filter(Boolean).join(', ')
+}
+
+function getAirportLabel(aeropuerto) {
+  const code = aeropuerto.codigoIata || aeropuerto.codigoIATA || aeropuerto.codigo_iata || ''
+  return `${aeropuerto.nombre}${code ? ` (${code})` : ''}`
+}
+
+function filterAirports(term, excludedId = '') {
+  const normalizedTerm = term.trim().toLowerCase()
+
+  return aeropuertos.value
+    .filter((aeropuerto) => String(getAirportId(aeropuerto)) !== String(excludedId || ''))
+    .filter((aeropuerto) => {
+      if (!normalizedTerm) return true
+
+      const searchable = [
+        aeropuerto.nombre,
+        aeropuerto.codigoIata,
+        aeropuerto.codigoIATA,
+        aeropuerto.codigo_iata,
+        aeropuerto.codigoIcao,
+        aeropuerto.codigoICAO,
+        aeropuerto.codigo_icao,
+        getAirportLocation(aeropuerto)
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      return searchable.includes(normalizedTerm)
+    })
+    .slice(0, 8)
+}
+
+function openAirportList(field) {
+  openList.value = field
+}
+
+function selectAirport(field, aeropuerto) {
+  form[field] = getAirportId(aeropuerto)
+  search[field] = getAirportLabel(aeropuerto)
+  openList.value = ''
+}
+
 const handleSearch = () => {
+  if (!form.origen || !form.destino) {
+    alert("Selecciona un aeropuerto de origen y destino de la lista.")
+    return
+  }
+
   if (form.origen === form.destino) {
     alert("El origen y destino no pueden ser iguales.")
     return
@@ -243,5 +355,43 @@ onMounted(() => {
 .form-select:focus, .form-control:focus {
   border-color: #d60f2b;
   box-shadow: 0 0 0 0.25rem rgba(214,15,43,0.1);
+}
+
+.airport-combobox {
+  position: relative;
+}
+
+.airport-results {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  overflow: hidden;
+  max-height: 290px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #f0d5da;
+  border-radius: 14px;
+}
+
+.airport-option {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.75rem;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  padding: 0.85rem 1rem;
+  text-align: left;
+}
+
+.airport-option:hover {
+  background: #fff0f2;
+}
+
+.airport-option small {
+  grid-column: 2;
 }
 </style>
