@@ -420,6 +420,13 @@ function handlePhoneInput() {
   validatePhone()
 }
 
+function getPasajeroIdFromResponse(response) {
+  return response?.idPasajero ??
+    response?.data?.idPasajero ??
+    response?.id_pasajero ??
+    response?.data?.id_pasajero
+}
+
 const submitFlow = async () => {
   if (!idAsiento || !idVuelo) {
     errorMessage.value = 'Faltan datos de la selección de vuelo o asiento. Por favor, regresa y vuelve a intentar.'
@@ -435,24 +442,23 @@ const submitFlow = async () => {
   errorMessage.value = ''
 
   try {
-    // 1. Crear el pasajero
+    // 1. Crear u obtener pasajero. El backend evita duplicados por documento.
     const pasajeroPayload = {
       ...form,
       fechaNacimientoPasajero: form.fechaNacimientoPasajero ? new Date(form.fechaNacimientoPasajero).toISOString() : null,
       observacionesPasajero: form.observacionesPasajero || 'NA'
     }
     
-    // No enviamos idCliente explícito, el backend debería saberlo si es necesario por el token JWT
-    const newPasajero = await createPasajero(pasajeroPayload)
-    const idPasajeroCreado = newPasajero?.idPasajero || newPasajero?.id_pasajero || newPasajero
-    
-    if (!idPasajeroCreado || typeof idPasajeroCreado === 'object') {
-      console.warn("Respuesta de pasajero inesperada:", newPasajero)
+    const pasajeroResponse = await createPasajero(pasajeroPayload)
+    const idPasajero = Number(getPasajeroIdFromResponse(pasajeroResponse))
+
+    if (!idPasajero || Number.isNaN(idPasajero)) {
+      throw new Error('El servidor no devolvió un idPasajero válido.')
     }
 
     // 2. Crear la reserva. El backend calcula importes, factura y boleto al confirmar.
     const reservaPayload = {
-      idPasajero: Number(idPasajeroCreado?.idPasajero || idPasajeroCreado),
+      idPasajero,
       idVuelo: Number(idVuelo),
       idAsiento: Number(idAsiento),
       origenCanalReserva: 'WEB',
