@@ -51,17 +51,39 @@
               required
             />
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <label class="form-label label-upper" for="reg-tipo-identificacion">Tipo ID</label>
+            <select
+              id="reg-tipo-identificacion"
+              v-model="form.tipoIdentificacion"
+              class="form-select form-control-nf"
+              :disabled="loading"
+              @change="handleDocumentTypeChange"
+            >
+              <option value="CEDULA">Cédula</option>
+              <option value="RUC">RUC</option>
+              <option value="PASAPORTE">Pasaporte</option>
+            </select>
+          </div>
+          <div class="col-md-8">
             <label class="form-label label-upper" for="reg-identificacion">Identificación</label>
             <input
               id="reg-identificacion"
               v-model.trim="form.identificacion"
               class="form-control form-control-nf"
+              :class="{ 'is-invalid': validationErrors.identificacion }"
               :disabled="loading"
-              placeholder="Cédula o Pasaporte"
+              :inputmode="documentMeta.inputMode"
+              :maxlength="documentMeta.maxLength"
+              :placeholder="documentMeta.placeholder"
               type="text"
               required
+              @input="handleDocumentInput"
+              @blur="validateIdentification"
             />
+            <div v-if="validationErrors.identificacion" class="invalid-feedback">
+              {{ validationErrors.identificacion }}
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label label-upper" for="reg-telefono">Teléfono</label>
@@ -69,11 +91,19 @@
               id="reg-telefono"
               v-model.trim="form.telefono"
               class="form-control form-control-nf"
+              :class="{ 'is-invalid': validationErrors.telefono }"
               :disabled="loading"
               placeholder="Tu número"
-              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              type="tel"
               required
+              @input="handlePhoneInput"
+              @blur="validatePhoneField"
             />
+            <div v-if="validationErrors.telefono" class="invalid-feedback">
+              {{ validationErrors.telefono }}
+            </div>
           </div>
           <div class="col-12">
             <label class="form-label label-upper" for="reg-correo">Correo electrónico</label>
@@ -81,11 +111,17 @@
               id="reg-correo"
               v-model.trim="form.correo"
               class="form-control form-control-nf"
+              :class="{ 'is-invalid': validationErrors.correo }"
               :disabled="loading"
               placeholder="tucorreo@ejemplo.com"
               type="email"
               required
+              @input="handleEmailInput"
+              @blur="validateEmailField"
             />
+            <div v-if="validationErrors.correo" class="invalid-feedback">
+              {{ validationErrors.correo }}
+            </div>
           </div>
         </div>
 
@@ -129,7 +165,7 @@
           </div>
         </div>
 
-        <button class="btn btn-nf w-100 mb-3" :disabled="loading" type="submit">
+        <button class="btn btn-nf w-100 mb-3" :disabled="loading || hasValidationErrors" type="submit">
           <span
             v-if="loading"
             class="spinner-border spinner-border-sm me-2"
@@ -148,9 +184,18 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { registerAccount } from '../../services/authService'
+import {
+  getDocumentError,
+  getDocumentMeta,
+  getEmailError,
+  getPhoneError,
+  sanitizeDocument,
+  sanitizeEmail,
+  sanitizePhone
+} from '../../utils/personValidation'
 
 const router = useRouter()
 const loading = ref(false)
@@ -158,6 +203,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 
 const form = reactive({
+  tipoIdentificacion: 'CEDULA',
   nombre: '',
   apellido: '',
   identificacion: '',
@@ -167,6 +213,54 @@ const form = reactive({
   password: '',
   confirmPassword: ''
 })
+
+const validationErrors = reactive({
+  identificacion: '',
+  correo: '',
+  telefono: ''
+})
+
+const documentMeta = computed(() => getDocumentMeta(form.tipoIdentificacion))
+const hasValidationErrors = computed(() => Object.values(validationErrors).some(Boolean))
+
+function validateIdentification() {
+  validationErrors.identificacion = getDocumentError(form.identificacion, form.tipoIdentificacion)
+  return !validationErrors.identificacion
+}
+
+function validateEmailField() {
+  validationErrors.correo = getEmailError(form.correo)
+  return !validationErrors.correo
+}
+
+function validatePhoneField() {
+  validationErrors.telefono = getPhoneError(form.telefono)
+  return !validationErrors.telefono
+}
+
+function validatePersonalFields() {
+  return [validateIdentification(), validateEmailField(), validatePhoneField()].every(Boolean)
+}
+
+function handleDocumentTypeChange() {
+  form.identificacion = ''
+  validationErrors.identificacion = ''
+}
+
+function handleDocumentInput() {
+  form.identificacion = sanitizeDocument(form.identificacion, form.tipoIdentificacion)
+  validateIdentification()
+}
+
+function handleEmailInput() {
+  form.correo = sanitizeEmail(form.correo)
+  validateEmailField()
+}
+
+function handlePhoneInput() {
+  form.telefono = sanitizePhone(form.telefono)
+  validatePhoneField()
+}
 
 async function handleRegister() {
   errorMessage.value = ''
@@ -179,6 +273,11 @@ async function handleRegister() {
 
   if (form.password !== form.confirmPassword) {
     errorMessage.value = 'Las contraseñas no coinciden.'
+    return
+  }
+
+  if (!validatePersonalFields()) {
+    errorMessage.value = 'Revisa los campos marcados antes de continuar.'
     return
   }
 

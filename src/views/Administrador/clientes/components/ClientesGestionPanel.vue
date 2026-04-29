@@ -55,7 +55,8 @@
               <select v-model="form.tipoIdentificacion"
                       :disabled="!!editingCliente"
                       class="form-select"
-                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;">
+                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;"
+                      @change="$emit('document-type-change')">
                 <option value="CEDULA">Cédula</option>
                 <option value="PASAPORTE">Pasaporte</option>
                 <option value="RUC">RUC</option>
@@ -67,9 +68,17 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Número de identificación *</label>
               <input v-model="form.numeroIdentificacion" required
                      :disabled="!!editingCliente"
-                     placeholder="Ej. 1712345678"
+                     :placeholder="documentMeta.placeholder"
+                     :inputmode="documentMeta.inputMode"
+                     :maxlength="documentMeta.maxLength"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.numeroIdentificacion }"
+                     @input="$emit('document-input')"
+                     @blur="$emit('validate-document')"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.numeroIdentificacion" class="invalid-feedback">
+                {{ validationErrors.numeroIdentificacion }}
+              </div>
             </div>
 
             <!-- Género -->
@@ -105,7 +114,13 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Fecha de nacimiento</label>
               <input v-model="form.fechaNacimiento" type="datetime-local"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.fechaNacimiento }"
+                     @blur="$emit('validate-birth-date')"
+                     @change="$emit('validate-birth-date')"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.fechaNacimiento" class="invalid-feedback">
+                {{ validationErrors.fechaNacimiento }}
+              </div>
             </div>
 
             <!-- Correo -->
@@ -113,7 +128,13 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Correo electrónico</label>
               <input v-model="form.correo" type="email" placeholder="Ej. juan@email.com"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.correo }"
+                     @input="$emit('email-input')"
+                     @blur="$emit('validate-email')"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.correo" class="invalid-feedback">
+                {{ validationErrors.correo }}
+              </div>
             </div>
 
             <!-- Teléfono -->
@@ -121,7 +142,15 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Teléfono</label>
               <input v-model="form.telefono" placeholder="Ej. +593 99 123 4567"
                      class="form-control"
+                     inputmode="numeric"
+                     maxlength="10"
+                     :class="{ 'is-invalid': validationErrors.telefono }"
+                     @input="$emit('phone-input')"
+                     @blur="$emit('validate-phone')"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.telefono" class="invalid-feedback">
+                {{ validationErrors.telefono }}
+              </div>
             </div>
 
             <!-- Nacionalidad -->
@@ -199,6 +228,7 @@
               </button>
               <button type="submit"
                       class="btn fw-bold rounded-pill px-4 text-white"
+                      :disabled="hasValidationErrors"
                       style="background:#d60f2b;">
                 {{ editingCliente ? 'Actualizar cliente' : 'Crear cliente' }}
               </button>
@@ -374,17 +404,28 @@ const props = defineProps({
   editingCliente:     { type: Object,  default: null       },
   errorMsg:           { type: String,  default: ''         },
   form:               { type: Object,  required: true      },
+  documentMeta:       { type: Object,  default: () => ({ inputMode: 'numeric', maxLength: 10, placeholder: 'Ej. 1712345678' }) },
+  hasValidationErrors:{ type: Boolean, default: false      },
   loadingClientes:    { type: Boolean, default: false      },
   paisesFiltrados:    { type: Array,   default: () => []   },
-  successMsg:         { type: String,  default: ''         }
+  successMsg:         { type: String,  default: ''         },
+  validationErrors:   { type: Object,  default: () => ({}) }
 })
 
 const emit = defineEmits([
   'delete-cliente',
   'edit-cliente',
   'fetch-clientes',
+  'document-input',
+  'document-type-change',
+  'email-input',
+  'phone-input',
   'reset-form',
   'submit-cliente',
+  'validate-birth-date',
+  'validate-document',
+  'validate-email',
+  'validate-phone',
   'update:clientesPageSize',
   'update:busquedaPais'
 ])

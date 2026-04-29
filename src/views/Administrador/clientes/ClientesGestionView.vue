@@ -8,17 +8,28 @@
     :clientes-page="clientesPage"
     :clientes-total="clientesTotal"
     :clientes-total-pages="clientesTotalPages"
+    :document-meta="documentMeta"
     :editing-cliente="editingCliente"
     :error-msg="errorMsg"
     :form="form"
+    :has-validation-errors="hasValidationErrors"
     :loading-clientes="loadingClientes"
     :paises-filtrados="paisesFiltrados"
     :success-msg="successMsg"
+    :validation-errors="validationErrors"
     @delete-cliente="deleteCliente"
+    @document-input="handleDocumentInput"
+    @document-type-change="handleDocumentTypeChange"
     @edit-cliente="editCliente"
+    @email-input="handleEmailInput"
     @fetch-clientes="fetchClientes"
+    @phone-input="handlePhoneInput"
     @reset-form="resetForm"
     @submit-cliente="submitCliente"
+    @validate-birth-date="validateBirthDate"
+    @validate-document="validateDocument"
+    @validate-email="validateEmail"
+    @validate-phone="validatePhone"
   />
 </template>
 
@@ -36,15 +47,26 @@ const {
   clientesTotal,
   clientesTotalPages,
   deleteCliente,
+  documentMeta,
   editCliente,
   editingCliente,
   errorMsg,
   fetchClientes,
   form,
+  handleDocumentInput,
+  handleDocumentTypeChange,
+  handleEmailInput,
+  handlePhoneInput,
+  hasValidationErrors,
   loadingClientes,
   paisesFiltrados,
   resetForm,
   submitCliente,
-  successMsg
+  successMsg,
+  validateBirthDate,
+  validateDocument,
+  validateEmail,
+  validatePhone,
+  validationErrors
 } = useClientesGestion()
 </script>

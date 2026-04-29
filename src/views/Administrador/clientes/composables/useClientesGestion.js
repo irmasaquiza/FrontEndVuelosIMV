@@ -1,5 +1,15 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import api from '@/api/axios'
+import {
+  getBirthDateError,
+  getDocumentError,
+  getDocumentMeta,
+  getEmailError,
+  getPhoneError,
+  sanitizeDocument,
+  sanitizeEmail,
+  sanitizePhone
+} from '@/utils/personValidation'
 
 export function useClientesGestion() {
   const clientes = ref([])
@@ -32,6 +42,16 @@ export function useClientesGestion() {
     genero: 'MASCULINO',
     estado: 'ACTIVO'
   })
+
+  const validationErrors = reactive({
+    numeroIdentificacion: '',
+    correo: '',
+    fechaNacimiento: '',
+    telefono: ''
+  })
+
+  const documentMeta = computed(() => getDocumentMeta(form.tipoIdentificacion))
+  const hasValidationErrors = computed(() => Object.values(validationErrors).some(Boolean))
 
   const paisesFiltrados = computed(() =>
     paises.value.filter((pais) =>
@@ -75,6 +95,50 @@ export function useClientesGestion() {
     setTimeout(() => {
       successMsg.value = ''
     }, 3000)
+  }
+
+  function validateDocument() {
+    validationErrors.numeroIdentificacion = getDocumentError(form.numeroIdentificacion, form.tipoIdentificacion)
+    return !validationErrors.numeroIdentificacion
+  }
+
+  function validateEmail() {
+    validationErrors.correo = getEmailError(form.correo)
+    return !validationErrors.correo
+  }
+
+  function validateBirthDate() {
+    validationErrors.fechaNacimiento = getBirthDateError(form.fechaNacimiento)
+    return !validationErrors.fechaNacimiento
+  }
+
+  function validatePhone() {
+    validationErrors.telefono = getPhoneError(form.telefono)
+    return !validationErrors.telefono
+  }
+
+  function validateFormFields() {
+    return [validateDocument(), validateEmail(), validateBirthDate(), validatePhone()].every(Boolean)
+  }
+
+  function handleDocumentTypeChange() {
+    form.numeroIdentificacion = ''
+    validationErrors.numeroIdentificacion = ''
+  }
+
+  function handleDocumentInput() {
+    form.numeroIdentificacion = sanitizeDocument(form.numeroIdentificacion, form.tipoIdentificacion)
+    validateDocument()
+  }
+
+  function handleEmailInput() {
+    form.correo = sanitizeEmail(form.correo)
+    validateEmail()
+  }
+
+  function handlePhoneInput() {
+    form.telefono = sanitizePhone(form.telefono)
+    validatePhone()
   }
 
   function readClientesMeta(response) {
@@ -203,6 +267,11 @@ export function useClientesGestion() {
   async function submitCliente() {
     errorMsg.value = ''
 
+    if (!validateFormFields()) {
+      errorMsg.value = 'Revisa los campos marcados antes de continuar.'
+      return
+    }
+
     try {
       if (editingCliente.value) {
         await api.put(`/clientes/${editingCliente.value.idCliente}`, buildPutPayload())
@@ -246,6 +315,10 @@ export function useClientesGestion() {
     form.nacionalidad = ''
     form.genero = 'MASCULINO'
     form.estado = 'ACTIVO'
+    validationErrors.numeroIdentificacion = ''
+    validationErrors.correo = ''
+    validationErrors.fechaNacimiento = ''
+    validationErrors.telefono = ''
     busquedaPais.value = ''
     editingCliente.value = null
   }
@@ -266,15 +339,26 @@ export function useClientesGestion() {
     clientesTotal,
     clientesTotalPages,
     deleteCliente,
+    documentMeta,
     editCliente,
     editingCliente,
     errorMsg,
     fetchClientes,
     form,
+    handleDocumentInput,
+    handleDocumentTypeChange,
+    handleEmailInput,
+    handlePhoneInput,
+    hasValidationErrors,
     loadingClientes,
     paisesFiltrados,
     resetForm,
     submitCliente,
-    successMsg
+    successMsg,
+    validateBirthDate,
+    validateDocument,
+    validateEmail,
+    validatePhone,
+    validationErrors
   }
 }

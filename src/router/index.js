@@ -56,11 +56,6 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  if (to.meta.guestOnly && token) {
-    next('/home')
-    return
-  }
-
   next()
 })
 

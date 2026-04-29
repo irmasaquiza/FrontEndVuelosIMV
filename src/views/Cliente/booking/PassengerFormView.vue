@@ -85,7 +85,19 @@
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Fecha de Nacimiento *</label>
-                    <input v-model="form.fechaNacimientoPasajero" type="date" class="form-control form-control-lg bg-light border-0" required :disabled="loading" />
+                    <input
+                      v-model="form.fechaNacimientoPasajero"
+                      type="date"
+                      class="form-control form-control-lg bg-light"
+                      :class="{ 'is-invalid': validationErrors.fechaNacimientoPasajero }"
+                      required
+                      :disabled="loading"
+                      @blur="validateBirthDate"
+                      @change="validateBirthDate"
+                    />
+                    <div v-if="validationErrors.fechaNacimientoPasajero" class="invalid-feedback">
+                      {{ validationErrors.fechaNacimientoPasajero }}
+                    </div>
                   </div>
 
                   <hr class="my-4 text-muted" />
@@ -93,7 +105,13 @@
                   <!-- Documento -->
                   <div class="col-md-4">
                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Tipo de Documento *</label>
-                    <select v-model="form.tipoDocumentoPasajero" class="form-select form-select-lg bg-light border-0" required :disabled="loading">
+                    <select
+                      v-model="form.tipoDocumentoPasajero"
+                      class="form-select form-select-lg bg-light"
+                      required
+                      :disabled="loading"
+                      @change="handleDocumentTypeChange"
+                    >
                       <option value="CEDULA">Cédula</option>
                       <option value="PASAPORTE">Pasaporte</option>
                       <option value="RUC">RUC</option>
@@ -102,7 +120,22 @@
 
                   <div class="col-md-8">
                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Número de Documento *</label>
-                    <input v-model="form.numeroDocumentoPasajero" type="text" class="form-control form-control-lg bg-light border-0" required placeholder="Ej. 1712345678" :disabled="loading" />
+                    <input
+                      v-model="form.numeroDocumentoPasajero"
+                      :type="documentInputType"
+                      :inputmode="documentInputMode"
+                      :maxlength="documentMaxLength"
+                      class="form-control form-control-lg bg-light"
+                      :class="{ 'is-invalid': validationErrors.numeroDocumentoPasajero }"
+                      required
+                      :placeholder="documentPlaceholder"
+                      :disabled="loading"
+                      @input="handleDocumentInput"
+                      @blur="validateDocument"
+                    />
+                    <div v-if="validationErrors.numeroDocumentoPasajero" class="invalid-feedback">
+                      {{ validationErrors.numeroDocumentoPasajero }}
+                    </div>
                   </div>
 
                   <div class="col-md-12">
@@ -115,12 +148,40 @@
                   <!-- Contacto -->
                   <div class="col-md-6">
                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Correo Electrónico *</label>
-                    <input v-model="form.emailContactoPasajero" type="email" class="form-control form-control-lg bg-light border-0" required placeholder="correo@ejemplo.com" :disabled="loading" />
+                    <input
+                      v-model="form.emailContactoPasajero"
+                      type="email"
+                      class="form-control form-control-lg bg-light"
+                      :class="{ 'is-invalid': validationErrors.emailContactoPasajero }"
+                      required
+                      placeholder="correo@ejemplo.com"
+                      :disabled="loading"
+                      @input="handleEmailInput"
+                      @blur="validateEmail"
+                    />
+                    <div v-if="validationErrors.emailContactoPasajero" class="invalid-feedback">
+                      {{ validationErrors.emailContactoPasajero }}
+                    </div>
                   </div>
 
                   <div class="col-md-6">
                     <label class="form-label fw-bold small text-muted text-uppercase mb-1">Teléfono *</label>
-                    <input v-model="form.telefonoContactoPasajero" type="tel" class="form-control form-control-lg bg-light border-0" required placeholder="Ej. 0991234567" :disabled="loading" />
+                    <input
+                      v-model="form.telefonoContactoPasajero"
+                      type="tel"
+                      inputmode="numeric"
+                      maxlength="10"
+                      class="form-control form-control-lg bg-light"
+                      :class="{ 'is-invalid': validationErrors.telefonoContactoPasajero }"
+                      required
+                      placeholder="Ej. 0991234567"
+                      :disabled="loading"
+                      @input="handlePhoneInput"
+                      @blur="validatePhone"
+                    />
+                    <div v-if="validationErrors.telefonoContactoPasajero" class="invalid-feedback">
+                      {{ validationErrors.telefonoContactoPasajero }}
+                    </div>
                   </div>
 
                   <!-- Asistencia -->
@@ -136,7 +197,7 @@
 
                   <!-- Submit (Mobile only) -->
                   <div class="col-12 d-block d-lg-none mt-4">
-                    <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill py-3 shadow-sm" :disabled="loading">
+                    <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill py-3 shadow-sm" :disabled="loading || hasValidationErrors">
                       <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                       {{ loading ? 'Procesando...' : 'Confirmar Reserva' }}
                     </button>
@@ -181,7 +242,7 @@
 
               </div>
               <div class="card-footer bg-white border-0 p-4 pt-0 d-none d-lg-block">
-                <button type="button" class="btn btn-danger w-100 fw-bold rounded-pill py-3 shadow-sm" :disabled="loading" @click="submitFlow">
+                <button type="button" class="btn btn-danger w-100 fw-bold rounded-pill py-3 shadow-sm" :disabled="loading || hasValidationErrors" @click="submitFlow">
                   <span v-if="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                   {{ loading ? 'Procesando...' : 'Confirmar Reserva' }}
                 </button>
@@ -197,7 +258,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { createPasajero, createReserva } from '../../../services/clientService'
 
@@ -226,9 +287,147 @@ const form = reactive({
   observacionesPasajero: ''
 })
 
+const validationErrors = reactive({
+  numeroDocumentoPasajero: '',
+  emailContactoPasajero: '',
+  fechaNacimientoPasajero: '',
+  telefonoContactoPasajero: ''
+})
+
+const documentInputType = computed(() => form.tipoDocumentoPasajero === 'PASAPORTE' ? 'text' : 'text')
+const documentInputMode = computed(() => form.tipoDocumentoPasajero === 'PASAPORTE' ? 'text' : 'numeric')
+const documentMaxLength = computed(() => {
+  if (form.tipoDocumentoPasajero === 'RUC') return 13
+  if (form.tipoDocumentoPasajero === 'CEDULA') return 10
+  return 9
+})
+const documentPlaceholder = computed(() => {
+  if (form.tipoDocumentoPasajero === 'RUC') return 'Ej. 1712345678001'
+  if (form.tipoDocumentoPasajero === 'PASAPORTE') return 'Ej. AB123456'
+  return 'Ej. 1712345678'
+})
+
+const hasValidationErrors = computed(() =>
+  Object.values(validationErrors).some(Boolean)
+)
+
+function validateCedula(cedula) {
+  if (!/^\d{10}$/.test(cedula)) return false
+
+  const province = Number(cedula.slice(0, 2))
+  const thirdDigit = Number(cedula[2])
+  if (province < 1 || province > 24 || thirdDigit > 5) return false
+
+  const coefficients = [2, 1, 2, 1, 2, 1, 2, 1, 2]
+  const sum = coefficients.reduce((total, coefficient, index) => {
+    const product = Number(cedula[index]) * coefficient
+    return total + (product > 9 ? product - 9 : product)
+  }, 0)
+
+  const checkDigit = (10 - (sum % 10)) % 10
+  return checkDigit === Number(cedula[9])
+}
+
+function validateDocument() {
+  const value = form.numeroDocumentoPasajero
+  validationErrors.numeroDocumentoPasajero = ''
+
+  if (form.tipoDocumentoPasajero === 'CEDULA' && !validateCedula(value)) {
+    validationErrors.numeroDocumentoPasajero = 'La cédula debe tener 10 dígitos numéricos'
+  }
+
+  if (form.tipoDocumentoPasajero === 'RUC' && (!/^\d{13}$/.test(value) || !validateCedula(value.slice(0, 10)))) {
+    validationErrors.numeroDocumentoPasajero = 'El RUC debe tener 13 dígitos numéricos válidos'
+  }
+
+  if (form.tipoDocumentoPasajero === 'PASAPORTE' && !/^[a-zA-Z0-9]{6,9}$/.test(value)) {
+    validationErrors.numeroDocumentoPasajero = 'El pasaporte debe tener entre 6 y 9 caracteres alfanuméricos'
+  }
+
+  return !validationErrors.numeroDocumentoPasajero
+}
+
+function validateEmail() {
+  const value = form.emailContactoPasajero
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  validationErrors.emailContactoPasajero = emailRegex.test(value)
+    ? ''
+    : 'Ingrese un correo electrónico válido'
+  return !validationErrors.emailContactoPasajero
+}
+
+function validateBirthDate() {
+  const value = form.fechaNacimientoPasajero
+  validationErrors.fechaNacimientoPasajero = ''
+
+  if (!value) {
+    validationErrors.fechaNacimientoPasajero = 'Ingresa una fecha de nacimiento válida'
+    return false
+  }
+
+  const birthDate = new Date(value)
+
+  if (Number.isNaN(birthDate.getTime()) || birthDate > new Date()) {
+    validationErrors.fechaNacimientoPasajero = 'Ingresa una fecha de nacimiento válida'
+  }
+
+  return !validationErrors.fechaNacimientoPasajero
+}
+
+function validatePhone() {
+  validationErrors.telefonoContactoPasajero = /^\d{10}$/.test(form.telefonoContactoPasajero)
+    ? ''
+    : 'El número de teléfono debe tener 10 dígitos numéricos'
+  return !validationErrors.telefonoContactoPasajero
+}
+
+function validateFormFields() {
+  return [
+    validateDocument(),
+    validateEmail(),
+    validateBirthDate(),
+    validatePhone()
+  ].every(Boolean)
+}
+
+function handleDocumentTypeChange() {
+  form.numeroDocumentoPasajero = ''
+  validationErrors.numeroDocumentoPasajero = ''
+}
+
+function handleDocumentInput() {
+  if (form.tipoDocumentoPasajero === 'PASAPORTE') {
+    form.numeroDocumentoPasajero = form.numeroDocumentoPasajero
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .toUpperCase()
+      .slice(0, 9)
+  } else {
+    form.numeroDocumentoPasajero = form.numeroDocumentoPasajero
+      .replace(/\D/g, '')
+      .slice(0, documentMaxLength.value)
+  }
+
+  validateDocument()
+}
+
+function handleEmailInput() {
+  form.emailContactoPasajero = form.emailContactoPasajero.replace(/\s/g, '')
+  validateEmail()
+}
+
+function handlePhoneInput() {
+  form.telefonoContactoPasajero = form.telefonoContactoPasajero.replace(/\D/g, '').slice(0, 10)
+  validatePhone()
+}
+
 const submitFlow = async () => {
   if (!idAsiento || !idVuelo) {
     errorMessage.value = 'Faltan datos de la selección de vuelo o asiento. Por favor, regresa y vuelve a intentar.'
+    return
+  }
+
+  if (!validateFormFields()) {
+    errorMessage.value = 'Revisa los campos marcados antes de continuar.'
     return
   }
 

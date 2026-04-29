@@ -97,6 +97,7 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Tipo de documento</label>
               <select v-model="form.tipoDocumentoPasajero"
                       class="form-select"
+                      @change="handleDocumentTypeChange"
                       style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;">
                 <option value="CEDULA">Cédula</option>
                 <option value="PASAPORTE">Pasaporte</option>
@@ -108,7 +109,15 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Número de documento *</label>
               <input v-model="form.numeroDocumentoPasajero" required placeholder="Ej. 1712345678"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.numeroDocumentoPasajero }"
+                     :inputmode="documentMeta.inputMode"
+                     :maxlength="documentMeta.maxLength"
+                     @input="handleDocumentInput"
+                     @blur="validateDocument"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.numeroDocumentoPasajero" class="invalid-feedback">
+                {{ validationErrors.numeroDocumentoPasajero }}
+              </div>
             </div>
 
             <!-- Fecha nacimiento -->
@@ -116,7 +125,13 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Fecha de nacimiento</label>
               <input v-model="form.fechaNacimientoPasajero" type="datetime-local"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.fechaNacimientoPasajero }"
+                     @blur="validateBirthDate"
+                     @change="validateBirthDate"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.fechaNacimientoPasajero" class="invalid-feedback">
+                {{ validationErrors.fechaNacimientoPasajero }}
+              </div>
             </div>
 
             <!-- Nacionalidad -->
@@ -132,7 +147,13 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Correo de contacto</label>
               <input v-model="form.emailContactoPasajero" type="email" placeholder="Ej. juan@email.com"
                      class="form-control"
+                     :class="{ 'is-invalid': validationErrors.emailContactoPasajero }"
+                     @input="handleEmailInput"
+                     @blur="validateEmail"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.emailContactoPasajero" class="invalid-feedback">
+                {{ validationErrors.emailContactoPasajero }}
+              </div>
             </div>
 
             <!-- Teléfono -->
@@ -140,7 +161,15 @@
               <label class="form-label text-uppercase fw-bold small" style="font-size:0.72rem;letter-spacing:0.5px;color:#555;">Teléfono de contacto</label>
               <input v-model="form.telefonoContactoPasajero" placeholder="Ej. +593 99 123 4567"
                      class="form-control"
+                     inputmode="numeric"
+                     maxlength="10"
+                     :class="{ 'is-invalid': validationErrors.telefonoContactoPasajero }"
+                     @input="handlePhoneInput"
+                     @blur="validatePhone"
                      style="border:1.5px solid #e0e0e0;border-radius:8px;min-height:42px;" />
+              <div v-if="validationErrors.telefonoContactoPasajero" class="invalid-feedback">
+                {{ validationErrors.telefonoContactoPasajero }}
+              </div>
             </div>
 
             <!-- Observaciones -->
@@ -177,6 +206,7 @@
               </button>
               <button type="submit"
                       class="btn fw-bold rounded-pill px-4 text-white"
+                      :disabled="hasValidationErrors"
                       style="background:#d60f2b;">
                 {{ form.idPasajero ? 'Actualizar pasajero' : 'Crear pasajero' }}
               </button>
@@ -335,6 +365,15 @@
 <script setup>
 import { computed, ref, reactive, onMounted } from 'vue'
 import api from '@/api/axios'
+import {
+  getDocumentError,
+  getDocumentMeta,
+  getEmailError,
+  getPhoneError,
+  sanitizeDocument,
+  sanitizeEmail,
+  sanitizePhone
+} from '@/utils/personValidation'
 
 const pasajeros = ref([])
 const loadingPasajeros = ref(false)
@@ -363,6 +402,16 @@ const form = reactive({
   observacionesPasajero:    ''
 })
 
+const validationErrors = reactive({
+  numeroDocumentoPasajero: '',
+  emailContactoPasajero: '',
+  fechaNacimientoPasajero: '',
+  telefonoContactoPasajero: ''
+})
+
+const documentMeta = computed(() => getDocumentMeta(form.tipoDocumentoPasajero))
+const hasValidationErrors = computed(() => Object.values(validationErrors).some(Boolean))
+
 const canNextPasajeroPage = computed(() => {
   if (pasajerosTotalPages.value > pasajerosPage.value) {
     return true
@@ -390,6 +439,57 @@ function setError(e, fallback = '') {
 function setSuccess(msg) {
   feedbackError.value   = ''
   feedbackSuccess.value = msg
+}
+
+function validateDocument() {
+  validationErrors.numeroDocumentoPasajero = getDocumentError(
+    form.numeroDocumentoPasajero,
+    form.tipoDocumentoPasajero
+  )
+  return !validationErrors.numeroDocumentoPasajero
+}
+
+function validateEmail() {
+  validationErrors.emailContactoPasajero = getEmailError(form.emailContactoPasajero)
+  return !validationErrors.emailContactoPasajero
+}
+
+function validateBirthDate() {
+  const value = form.fechaNacimientoPasajero
+  const date = value ? new Date(value) : null
+  validationErrors.fechaNacimientoPasajero = !value || Number.isNaN(date.getTime()) || date > new Date()
+    ? 'Ingresa una fecha de nacimiento válida'
+    : ''
+  return !validationErrors.fechaNacimientoPasajero
+}
+
+function validatePhone() {
+  validationErrors.telefonoContactoPasajero = getPhoneError(form.telefonoContactoPasajero)
+  return !validationErrors.telefonoContactoPasajero
+}
+
+function validateFormFields() {
+  return [validateDocument(), validateEmail(), validateBirthDate(), validatePhone()].every(Boolean)
+}
+
+function handleDocumentTypeChange() {
+  form.numeroDocumentoPasajero = ''
+  validationErrors.numeroDocumentoPasajero = ''
+}
+
+function handleDocumentInput() {
+  form.numeroDocumentoPasajero = sanitizeDocument(form.numeroDocumentoPasajero, form.tipoDocumentoPasajero)
+  validateDocument()
+}
+
+function handleEmailInput() {
+  form.emailContactoPasajero = sanitizeEmail(form.emailContactoPasajero)
+  validateEmail()
+}
+
+function handlePhoneInput() {
+  form.telefonoContactoPasajero = sanitizePhone(form.telefonoContactoPasajero)
+  validatePhone()
 }
 
 async function fetchClientes() {
@@ -495,6 +595,11 @@ function buildPayload() {
 }
 
 async function submitPasajero() {
+  if (!validateFormFields()) {
+    feedbackError.value = 'Revisa los campos marcados antes de continuar.'
+    return
+  }
+
   try {
     const payload = buildPayload()
     console.log('JSON:', payload)
@@ -516,6 +621,10 @@ function resetForm() {
   form.generoPasajero        = 'MASCULINO'
   form.tipoDocumentoPasajero = 'CEDULA'
   form.idPasajero            = null
+  validationErrors.numeroDocumentoPasajero = ''
+  validationErrors.emailContactoPasajero = ''
+  validationErrors.fechaNacimientoPasajero = ''
+  validationErrors.telefonoContactoPasajero = ''
 }
 
 onMounted(() => {
