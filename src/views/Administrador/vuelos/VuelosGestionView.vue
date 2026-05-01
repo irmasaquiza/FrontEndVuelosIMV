@@ -135,6 +135,7 @@
           </div>
 
         </div>
+
       </div>
     </div>
 
@@ -384,6 +385,7 @@
             </div>
 
           </div>
+
         </div>
 
         <!-- Tabla escalas -->
@@ -569,6 +571,12 @@ function formatDate(d) {
   return d ? d.replace('T', ' ').slice(0, 16) : ''
 }
 
+function toBackendIsoDateTime(value) {
+  if (!value) return null
+  const withSeconds = value.length === 16 ? `${value}:00` : value
+  return withSeconds.endsWith('Z') ? withSeconds : `${withSeconds}Z`
+}
+
 function manejarError(e, fallback = '') {
   if (e?.response?.data?.errors) {
     errorMsg.value = Object.values(e.response.data.errors).flat().join(' | ')
@@ -625,20 +633,35 @@ function buildVuelo() {
     idAeropuertoOrigen:  Number(vueloForm.idAeropuertoOrigen),
     idAeropuertoDestino: Number(vueloForm.idAeropuertoDestino),
     numeroVuelo:         vueloForm.numeroVuelo,
-    fechaHoraSalida:     vueloForm.fechaHoraSalida,
-    fechaHoraLlegada:    vueloForm.fechaHoraLlegada,
+    fechaHoraSalida:     toBackendIsoDateTime(vueloForm.fechaHoraSalida),
+    fechaHoraLlegada:    toBackendIsoDateTime(vueloForm.fechaHoraLlegada),
     duracionMin:         vueloForm.duracionMin,
     precioBase:          Number(vueloForm.precioBase),
     capacidadTotal:      Number(vueloForm.capacidadTotal)
   }
 }
 
+function buildEscala() {
+  return {
+    idAeropuerto:     Number(escalaForm.idAeropuerto),
+    orden:            Number(escalaForm.orden),
+    fechaHoraLlegada: toBackendIsoDateTime(escalaForm.fechaHoraLlegada),
+    fechaHoraSalida:  toBackendIsoDateTime(escalaForm.fechaHoraSalida),
+    duracionMin:      escalaForm.duracionMin,
+    tipoEscala:       escalaForm.tipoEscala      || null,
+    terminal:         escalaForm.terminal        || null,
+    puerta:           escalaForm.puerta          || null,
+    observaciones:    escalaForm.observaciones   || null
+  }
+}
+
 async function submitVuelo() {
   errorMsg.value = ''
   try {
+    const payload = buildVuelo()
     vueloForm.idVuelo
-      ? await api.put(`/vuelos/${vueloForm.idVuelo}`, buildVuelo())
-      : await api.post('/vuelos', buildVuelo())
+      ? await api.put(`/vuelos/${vueloForm.idVuelo}`, payload)
+      : await api.post('/vuelos', payload)
     resetVueloForm()
     fetchVuelos()
   } catch (e) { manejarError(e) }
@@ -820,17 +843,8 @@ async function submitEscala() {
     return
   }
   try {
-    await api.post(`/vuelos/${selectedVuelo.value.idVuelo}/escalas`, {
-      idAeropuerto:     Number(escalaForm.idAeropuerto),
-      orden:            Number(escalaForm.orden),
-      fechaHoraLlegada: escalaForm.fechaHoraLlegada || null,
-      fechaHoraSalida:  escalaForm.fechaHoraSalida  || null,
-      duracionMin:      escalaForm.duracionMin,
-      tipoEscala:       escalaForm.tipoEscala      || null,
-      terminal:         escalaForm.terminal        || null,
-      puerta:           escalaForm.puerta          || null,
-      observaciones:    escalaForm.observaciones   || null
-    })
+    const payload = buildEscala()
+    await api.post(`/vuelos/${selectedVuelo.value.idVuelo}/escalas`, payload)
     Object.assign(escalaForm, {
       idAeropuerto: '', orden: '', fechaHoraLlegada: '', fechaHoraSalida: '',
       duracionMin: 0, tipoEscala: '', terminal: '', puerta: '', observaciones: ''

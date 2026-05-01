@@ -424,7 +424,7 @@ const facturas = ref([])
 const equipajes = ref([])
 const boletoEquipaje = ref(null)
 const paymentTarget = ref(null)
-const paidFacturaIds = ref(loadPaidFacturaIds())
+const paidFacturaIds = ref(new Set())
 
 const loadingReservas = ref(false)
 const loadingBoletos = ref(false)
@@ -443,20 +443,14 @@ const equipajeForm = reactive({
   descripcionEquipaje: ''
 })
 
+localStorage.removeItem('paidFacturaIds')
+localStorage.removeItem('paidReservaIds')
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-function loadPaidFacturaIds() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem('paidFacturaIds') || '[]').map(String))
-  } catch {
-    return new Set()
-  }
-}
-
-function persistPaidFacturaId(idFactura) {
+function rememberPaidFacturaId(idFactura) {
   if (!idFactura) return
   paidFacturaIds.value = new Set([...paidFacturaIds.value, String(idFactura)])
-  localStorage.setItem('paidFacturaIds', JSON.stringify([...paidFacturaIds.value]))
 }
 
 function entityValue(entity, keys) {
@@ -582,7 +576,7 @@ function getFacturaBadgeClass(item) {
 }
 
 function setFacturaPagadaLocal(item, idFactura = getFacturaId(item)) {
-  persistPaidFacturaId(idFactura)
+  rememberPaidFacturaId(idFactura)
 
   item.facturaPagadaLocal = true
   item.estadoFactura = 'APR'
